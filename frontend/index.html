@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PayDay Scheduler | Zaman Kilitli Transfer Otomasyonu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg: #07090e;
+      --bg-card: #0c111d;
+      --bg-panel: #111827;
+      --border: rgba(255, 255, 255, 0.08);
+      --primary: #f59e0b; /* Gold theme */
+      --primary-hover: #d97706;
+      --accent: #3b82f6;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: radial-gradient(circle at 10% 20%, rgba(245, 158, 11, 0.04) 0%, transparent 50%),
+                        radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 50%);
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .header-content { display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 10px; font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 900; color: #fff; }
+    .logo-badge { background: linear-gradient(135deg, var(--primary), #b45309); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+
+    /* LAYOUT */
+    .grid { display: grid; grid-template-columns: 420px 1fr; gap: 30px; padding: 40px 0; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); }
+    .panel-title { font-family: 'Outfit', sans-serif; font-size: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+    .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+    label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    input, select { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s; }
+    input:focus { border-color: var(--primary); }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; width: 100%; text-align: center; }
+    .btn-primary { background: var(--primary); color: #000; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.05); }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); width: auto; padding: 6px 14px; font-size: 12px; }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+
+    /* RELAYER STATUS */
+    .status-card { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 12px; }
+    .status-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+
+    /* ORDER CARD */
+    .order-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 15px; position: relative; }
+    .order-header { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 10px; }
+    .order-id { font-size: 14px; font-weight: 700; color: var(--primary); }
+    .order-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
+    .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--primary); }
+    .status-executed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .status-cancelled { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+    .order-details { font-size: 13px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 15px; }
+    .countdown { font-weight: 700; color: var(--accent); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container header-content">
+      <div class="logo">
+        <span>🕒 PayDay</span>
+        <span class="logo-badge">Scheduler</span>
+      </div>
+      <button class="btn btn-outline" id="btnConnect" style="width:auto;" onclick="connectWallet()">MetaMask Bağla</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="grid">
+      
+      <!-- SCHEDULE PANEL -->
+      <div class="panel">
+        <h2 class="panel-title">📅 Yeni Transfer Planla</h2>
+        
+        <div class="status-card">
+          <div class="status-row">
+            <span>Servis Durumu:</span>
+            <span style="color:var(--success); font-weight:700;">🟢 Aktif</span>
+          </div>
+          <div class="status-row">
+            <span>Relayer Gas Bakiyesi:</span>
+            <span id="relayerGas" style="font-weight:700;">Yükleniyor...</span>
+          </div>
+        </div>
+
+        <form id="schedulerForm" onsubmit="scheduleTransfer(event)">
+          <div class="form-group">
+            <label>Token Adresi (USDC / ERC20)</label>
+            <input type="text" id="tokenAddress" value="0x8172189cCE9b68F94Ee23fB5077748495B85098F" required>
+          </div>
+          
+          <div class="form-group">
+            <label>Alıcı Cüzdan Adresi (Receiver)</label>
+            <input type="text" id="receiverAddress" placeholder="0x..." required>
+          </div>
+
+          <div class="form-group">
+            <label>Gönderilecek Miktar</label>
+            <input type="number" step="0.01" id="amount" placeholder="Miktar Girin" required>
+          </div>
+
+          <div class="form-group">
+            <label>Gönderim Tarihi & Saati (Gelecek Zaman)</label>
+            <input type="datetime-local" id="executeAt" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary">🔒 Kilitle ve Planla</button>
+        </form>
+      </div>
+
+      <!-- SCHEDULED ORDERS LIST -->
+      <div class="panel">
+        <h2 class="panel-title">📋 Planlanmış Emirleriniz</h2>
+        
+        <div id="ordersList">
+          <!-- Dynamically populated -->
+          <div style="text-align:center; padding:60px 0; color:var(--text-muted);">
+            Henüz planlanmış bir emir bulunmuyor.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    let userAddress = null;
+    let mockOrders = [];
+
+    async function checkBackendStatus() {
+      try {
+        const resp = await fetch('http://localhost:3002/api/status');
+        const data = await resp.json();
+        document.getElementById('relayerGas').innerText = `${parseFloat(data.relayerBalanceETH).toFixed(4)} ETH`;
+      } catch (e) {
+        document.getElementById('relayerGas').innerText = 'Backend Bağlantısı Yok';
+      }
+    }
+
+    function connectWallet() {
+      if (window.ethereum) {
+        window.ethereum.request({ method: 'eth_requestAccounts' }).then(acc => {
+          userAddress = acc[0];
+          document.getElementById('btnConnect').innerText = userAddress.substring(0,6) + '...' + userAddress.substring(38);
+        });
+      } else {
+        alert('MetaMask cüzdanı bulunamadı.');
+      }
+    }
+
+    function scheduleTransfer(e) {
+      e.preventDefault();
+      const token = document.getElementById('tokenAddress').value;
+      const receiver = document.getElementById('receiverAddress').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const executeTime = new Date(document.getElementById('executeAt').value).getTime();
+
+      if (executeTime <= Date.now()) {
+        alert('Lütfen gelecek bir zaman dilimi seçin.');
+        return;
+      }
+
+      const orderId = mockOrders.length + 1;
+      mockOrders.push({
+        id: orderId,
+        token,
+        receiver,
+        amount,
+        executeAt: Math.floor(executeTime / 1000),
+        status: 'pending'
+      });
+
+      renderOrders();
+      alert(`Emir #${orderId} Başarıyla Planlandı!\nBelirtilen tarihte Relayer tarafından otomatik çalıştırılacak.`);
+    }
+
+    function cancelOrder(id) {
+      const idx = mockOrders.findIndex(o => o.id === id);
+      if (idx !== -1 && mockOrders[idx].status === 'pending') {
+        mockOrders[idx].status = 'cancelled';
+        renderOrders();
+        alert(`Emir #${id} İptal edildi ve tokenlar iade edildi.`);
+      }
+    }
+
+    function renderOrders() {
+      const listEl = document.getElementById('ordersList');
+      if (mockOrders.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; padding:60px 0; color:var(--text-muted);">Henüz planlanmış bir emir bulunmuyor.</div>`;
+        return;
+      }
+
+      listEl.innerHTML = mockOrders.map(o => {
+        const timeStr = new Date(o.executeAt * 1000).toLocaleString();
+        const secondsLeft = o.executeAt - Math.floor(Date.now() / 1000);
+        let statusBadge = '';
+        let actionBtn = '';
+
+        if (o.status === 'pending') {
+          statusBadge = `<span class="order-status status-pending">Planlandı</span>`;
+          actionBtn = `<button class="btn btn-danger" onclick="cancelOrder(${o.id})">❌ İptal Et</button>`;
+        } else if (o.status === 'executed') {
+          statusBadge = `<span class="order-status status-executed">Gönderildi</span>`;
+        } else {
+          statusBadge = `<span class="order-status status-cancelled">İptal Edildi</span>`;
+        }
+
+        return `
+          <div class="order-item">
+            <div class="order-header">
+              <span class="order-id">Emir #${o.id}</span>
+              ${statusBadge}
+            </div>
+            <div class="order-details">
+              <div><strong>Alıcı:</strong> ${o.receiver.substring(0,8)}...</div>
+              <div><strong>Miktar:</strong> ${o.amount} USDC</div>
+              <div><strong>Tarih:</strong> ${timeStr}</div>
+              <div><strong>Sayaç:</strong> <span class="countdown">${secondsLeft > 0 ? secondsLeft + ' saniye kaldı' : 'Süre doldu'}</span></div>
+            </div>
+            <div style="margin-top:15px; text-align:right;">
+              ${actionBtn}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Tick countdown every second
+    setInterval(renderOrders, 1000);
+    checkBackendStatus();
+    setInterval(checkBackendStatus, 15000);
+  </script>
+</body>
+</html>
