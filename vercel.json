@@ -1,15 +1,4 @@
 {
-  "version": 2,
-  "public": true,
-  "cleanUrls": true,
-  "routes": [
-    {
-      "src": "/bg.jpg",
-      "dest": "/frontend/bg.jpg"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/frontend/index.html"
-    }
-  ]
+  "outputDirectory": "frontend",
+  "cleanUrls": true
 }
