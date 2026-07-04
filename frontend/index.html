@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
     :root {
@@ -30,7 +31,7 @@
       font-family: 'Plus Jakarta Sans', sans-serif;
       min-height: 100vh;
       line-height: 1.6;
-      background-image: linear-gradient(rgba(7, 9, 14, 0.88), rgba(7, 9, 14, 0.88)), url('bg.jpg');
+      background-image: linear-gradient(rgba(7, 9, 14, 0.65), rgba(7, 9, 14, 0.75)), url('bg.jpg');
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -187,12 +188,12 @@
     <div class="container top-status-content">
       <div class="status-indicator">
         <span>Sunucu Durumu:</span>
-        <span style="color: var(--success);" id="serverStatusText">🟢 Aktif</span>
+        <span id="serverStatusText"><i class="fa-solid fa-circle-check" style="color:var(--success)"></i> Aktif</span>
       </div>
       <div class="gas-info">
         <span>Otomatik Gas Havuzu:</span>
         <span class="gas-badge" id="relayerGas">Yükleniyor...</span>
-        <span class="tooltip">?</span>
+        <span class="tooltip"><i class="fa-regular fa-circle-question"></i></span>
       </div>
     </div>
   </div>
@@ -200,10 +201,10 @@
   <header>
     <div class="container header-content">
       <div class="logo">
-        <span>🕒 PayDay</span>
+        <span><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary)"></i> PayDay</span>
         <span class="logo-badge">Scheduler</span>
       </div>
-      <button class="btn btn-outline" id="btnConnect" style="width:auto;" onclick="connectWallet()">MetaMask Bağla</button>
+      <button class="btn btn-outline" id="btnConnect" style="width:auto;" onclick="connectWallet()"><i class="fa-solid fa-wallet"></i> Cüzdan Bağla</button>
     </div>
   </header>
 
@@ -212,7 +213,7 @@
       
       <!-- SCHEDULE PANEL -->
       <div class="panel">
-        <h2 class="panel-title">📅 Yeni Transfer Planla</h2>
+        <h2 class="panel-title"><i class="fa-regular fa-calendar-plus" style="color:var(--primary)"></i> Yeni Transfer Planla</h2>
 
         <form id="schedulerForm" onsubmit="scheduleTransfer(event)">
           <!-- Currency Selection Buttons -->
@@ -244,13 +245,13 @@
             <input type="datetime-local" id="executeAt" required>
           </div>
 
-          <button type="submit" class="btn btn-primary">🔒 Kilitle ve Planla</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-lock"></i> Kilitle ve Planla</button>
         </form>
       </div>
 
       <!-- SCHEDULED ORDERS LIST -->
       <div class="panel">
-        <h2 class="panel-title">📋 Planlanmış Emirleriniz</h2>
+        <h2 class="panel-title"><i class="fa-solid fa-list-check" style="color:var(--primary)"></i> Planlanmış Emirleriniz</h2>
         
         <div id="ordersList">
           <!-- Dynamically populated -->
@@ -286,11 +287,11 @@
         const resp = await fetch('http://localhost:3002/api/status');
         const data = await resp.json();
         document.getElementById('relayerGas').innerText = `${parseFloat(data.relayerBalanceETH).toFixed(4)} ETH`;
-        document.getElementById('serverStatusText').innerHTML = `🟢 Aktif`;
+        document.getElementById('serverStatusText').innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> Aktif`;
         document.getElementById('serverStatusText').style.color = 'var(--success)';
       } catch (e) {
         document.getElementById('relayerGas').innerText = '0.0000 ETH';
-        document.getElementById('serverStatusText').innerHTML = `🔴 Çevrimdışı`;
+        document.getElementById('serverStatusText').innerHTML = `<i class="fa-solid fa-circle-xmark" style="color:var(--danger)"></i> Çevrimdışı`;
         document.getElementById('serverStatusText').style.color = 'var(--danger)';
       }
     }
