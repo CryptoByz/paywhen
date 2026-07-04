@@ -126,6 +126,10 @@
     label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
     input, select { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s; }
     input:focus { border-color: var(--primary); }
+    /* Hide number input spinner arrows */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
 
     /* TOKEN SELECTOR */
     .token-selector { display: flex; gap: 10px; }
@@ -410,6 +414,33 @@
     </div>
   </main>
 
+  <!-- SUCCESS MODAL -->
+  <div id="successModal" class="modal" style="z-index:1100;">
+    <div class="modal-content" style="max-width:420px; text-align:center; padding:40px 35px;">
+      <div style="width:70px;height:70px;background:rgba(16,185,129,0.15);border:2px solid var(--success);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px;color:var(--success);">
+        <i class="fa-solid fa-check"></i>
+      </div>
+      <h2 style="font-family:'Outfit',sans-serif;font-size:22px;margin-bottom:10px;color:#fff;">Emir Başarıyla Planlandı!</h2>
+      <p id="successModalMsg" style="color:var(--text-muted);font-size:14px;line-height:1.7;margin-bottom:25px;"></p>
+      <button class="btn btn-primary" onclick="document.getElementById('successModal').style.display='none'" style="max-width:200px;margin:0 auto;"><i class="fa-solid fa-check-double"></i> Tamam</button>
+    </div>
+  </div>
+
+  <!-- CONFIRM MODAL (24h warning) -->
+  <div id="confirmModal" class="modal" style="z-index:1100;">
+    <div class="modal-content" style="max-width:440px; text-align:center; padding:40px 35px;">
+      <div style="width:70px;height:70px;background:rgba(245,158,11,0.15);border:2px solid var(--primary);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:28px;color:var(--primary);">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <h2 style="font-family:'Outfit',sans-serif;font-size:20px;margin-bottom:12px;color:#fff;">Dikkat!</h2>
+      <p style="color:var(--text-muted);font-size:14px;line-height:1.8;margin-bottom:28px;">Gönderinizi <strong style="color:var(--primary)">24 saatten kısa</strong> bir süre içinde gerçekleşecek şekilde planladınız.<br><br>Gönderimi onayladığınız takdirde <strong style="color:var(--danger)">iptal etme şansınız olmayacak.</strong><br>Onaylıyor musunuz?</p>
+      <div style="display:flex;gap:12px;justify-content:center;">
+        <button class="btn btn-outline" onclick="document.getElementById('confirmModal').style.display='none'" style="width:auto;padding:10px 22px;"><i class="fa-solid fa-xmark"></i> Vazgeç</button>
+        <button class="btn btn-primary" id="confirmProceedBtn" style="width:auto;padding:10px 22px;"><i class="fa-solid fa-lock"></i> Evet, Kilitle</button>
+      </div>
+    </div>
+  </div>
+
   <!-- CHEQUE MODAL -->
   <div id="chequeModal" class="modal">
     <div class="modal-content">
@@ -494,18 +525,7 @@
       }
     }
 
-    function scheduleTransfer(e) {
-      e.preventDefault();
-      const token = document.getElementById('tokenAddress').value;
-      const receiver = document.getElementById('receiverAddress').value;
-      const amount = parseFloat(document.getElementById('amount').value);
-      const executeTime = new Date(document.getElementById('executeAt').value).getTime();
-
-      if (executeTime <= Date.now()) {
-        alert('Lütfen gelecek bir zaman dilimi seçin.');
-        return;
-      }
-
+    function doCreateOrder(token, receiver, amount, executeTime) {
       const orderId = mockOrders.length + 1;
       mockOrders.push({
         id: orderId,
@@ -517,9 +537,41 @@
         createdAt: Math.floor(Date.now() / 1000),
         status: 'pending'
       });
-
       renderOrders();
-      alert(`Emir #${orderId} Başarıyla Planlandı!\nİlk 24 saat boyunca iptal hakkınız bulunmaktadır.`);
+      // Show success modal
+      const within24 = (executeTime - Date.now()) < 24 * 3600 * 1000;
+      const msgEl = document.getElementById('successModalMsg');
+      if (within24) {
+        msgEl.innerHTML = `Emir <strong style="color:var(--primary)">#${orderId}</strong> başarıyla oluşturuldu.<br><br><i class="fa-solid fa-triangle-exclamation" style="color:var(--primary)"></i> Bu emir 24 saatten kısa süre içinde gönderileceğinden <strong style="color:var(--danger)">iptal edilemez.</strong>`;
+      } else {
+        msgEl.innerHTML = `Emir <strong style="color:var(--primary)">#${orderId}</strong> başarıyla planlandı.<br><br><i class="fa-regular fa-clock" style="color:var(--success)"></i> İptal etmek isterseniz ilk <strong>24 saat</strong> içinde bu hakkı kullanabilirsiniz.`;
+      }
+      document.getElementById('successModal').style.display = 'flex';
+    }
+
+    function scheduleTransfer(e) {
+      e.preventDefault();
+      const token = document.getElementById('tokenAddress').value;
+      const receiver = document.getElementById('receiverAddress').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const executeTime = new Date(document.getElementById('executeAt').value).getTime();
+
+      if (executeTime <= Date.now()) {
+        showInfoModal('Geçersiz Zaman', 'Lütfen gelecek bir tarih ve saat seçin.', 'warning');
+        return;
+      }
+
+      // If within 24 hours, show confirmation first
+      const msUntilExecution = executeTime - Date.now();
+      if (msUntilExecution < 24 * 3600 * 1000) {
+        document.getElementById('confirmModal').style.display = 'flex';
+        document.getElementById('confirmProceedBtn').onclick = function() {
+          document.getElementById('confirmModal').style.display = 'none';
+          doCreateOrder(token, receiver, amount, executeTime);
+        };
+      } else {
+        doCreateOrder(token, receiver, amount, executeTime);
+      }
     }
 
     function cancelOrder(id) {
@@ -527,12 +579,20 @@
       if (idx !== -1 && mockOrders[idx].status === 'pending') {
         const secondsElapsed = Math.floor(Date.now() / 1000) - mockOrders[idx].createdAt;
         if (secondsElapsed > 24 * 3600) {
-          alert('Hata: 24 saatlik iptal süresi dolduğu için bu işlem artık iptal edilemez!');
+          showInfoModal('İptal Edilemez', '24 saatlik iptal süresi dolduğu için bu işlem artık geri alınamaz.', 'danger');
           return;
         }
         mockOrders[idx].status = 'cancelled';
         renderOrders();
-        alert(`Emir #${id} İptal edildi ve tokenlar iade edildi.`);
+        // Show cancel success modal
+        const msgEl = document.getElementById('successModalMsg');
+        msgEl.innerHTML = `Emir <strong style="color:var(--primary)">#${id}</strong> iptal edildi ve tokenlarınız cüzdanınıza iade edildi.`;
+        document.getElementById('successModal').querySelector('div > div:first-child').style.background = 'rgba(239,68,68,0.15)';
+        document.getElementById('successModal').querySelector('div > div:first-child').style.borderColor = 'var(--danger)';
+        document.getElementById('successModal').querySelector('div > div:first-child').style.color = 'var(--danger)';
+        document.getElementById('successModal').querySelector('div > div:first-child i').className = 'fa-solid fa-rotate-left';
+        document.getElementById('successModal').querySelector('h2').innerText = 'Emir İptal Edildi';
+        document.getElementById('successModal').style.display = 'flex';
       }
     }
 
