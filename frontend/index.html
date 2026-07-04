@@ -501,7 +501,7 @@
 
     async function checkBackendStatus() {
       try {
-        const resp = await fetch('http://localhost:3002/api/status');
+        const resp = await fetch('https://api.paywhen.xyz/api/status');
         const data = await resp.json();
         document.getElementById('relayerGas').innerText = `${parseFloat(data.relayerBalanceETH).toFixed(4)} ETH`;
         document.getElementById('serverStatusText').innerHTML = `<i class="fa-solid fa-circle-check" style="color:var(--success)"></i> Aktif`;
