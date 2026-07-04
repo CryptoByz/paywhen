@@ -595,15 +595,6 @@
       }
     }
 
-    // Demo simulation function to instantly expire the 24 hour cancel window
-    function simulateLock(id) {
-      const idx = mockOrders.findIndex(o => o.id === id);
-      if (idx !== -1) {
-        // Move createdAt back by 25 hours
-        mockOrders[idx].createdAt = mockOrders[idx].createdAt - (25 * 3600);
-        renderOrders();
-      }
-    }
 
     function showCheque(id) {
       const o = mockOrders.find(order => order.id === id);
@@ -638,26 +629,27 @@
         let actionBtn = '';
 
         if (o.status === 'pending') {
+          // Format cancel time remaining as XXhYYmZZs
+          const absCancel = Math.abs(cancelTimeLeft);
+          const ch = Math.floor(absCancel / 3600);
+          const cm = Math.floor((absCancel % 3600) / 60);
+          const cs = absCancel % 60;
+          const pad = n => String(n).padStart(2, '0');
+
           if (cancelTimeLeft > 0) {
             statusBadge = `<span class="order-status status-pending">İptal Edilebilir</span>`;
-            
-            // Format cancel time remaining
-            const hours = Math.floor(cancelTimeLeft / 3600);
-            const minutes = Math.floor((cancelTimeLeft % 3600) / 60);
-            const seconds = cancelTimeLeft % 60;
-            const cancelStr = `${hours}sa ${minutes}dk ${seconds}sn`;
-
+            const cancelStr = `${pad(ch)}h${pad(cm)}m${pad(cs)}s`;
             actionBtn = `
               <div style="display:flex; gap:10px; justify-content: flex-end; align-items:center; flex-wrap:wrap;">
                 <span class="cancel-countdown" style="font-size:11px;"><i class="fa-regular fa-clock"></i> İptal Süresi: ${cancelStr}</span>
-                <button class="btn btn-danger" onclick="cancelOrder(${o.id})">❌ İptal Et</button>
-                <button class="btn btn-demo" onclick="simulateLock(${o.id})" title="24 saati simüle edip kilitle"><i class="fa-solid fa-bolt"></i> Süreyi Bitir (Demo)</button>
+                <button class="btn btn-danger" onclick="cancelOrder(${o.id})"><i class="fa-solid fa-xmark"></i> İptal Et</button>
               </div>
             `;
           } else {
-            statusBadge = `<span class="order-status status-locked">🔒 Geri Dönüşsüz</span>`;
+            statusBadge = `<span class="order-status status-locked"><i class="fa-solid fa-lock"></i> Geri Dönüşsüz</span>`;
             actionBtn = `
-              <div style="display:flex; gap:10px; justify-content: flex-end; align-items:center;">
+              <div style="display:flex; gap:10px; justify-content: flex-end; align-items:center; flex-wrap:wrap;">
+                <button class="btn btn-danger" disabled style="width:auto;padding:6px 14px;font-size:12px;opacity:0.35;cursor:not-allowed;"><i class="fa-solid fa-xmark"></i> İptal Et</button>
                 <span style="font-size:12px; color:var(--success); font-weight:600;"><i class="fa-solid fa-shield-halved"></i> Garantili Kilitleme Tamamlandı</span>
                 <button class="btn btn-success" onclick="showCheque(${o.id})"><i class="fa-solid fa-ticket"></i> Çek Yaprağı Paylaş</button>
               </div>
@@ -679,7 +671,7 @@
               <div><strong>Alıcı:</strong> ${o.receiver.substring(0,8)}...</div>
               <div><strong>Miktar:</strong> ${o.amount} ${o.tokenSymbol || 'USDC'}</div>
               <div><strong>Tarih:</strong> ${timeStr}</div>
-              <div><strong>Sayaç:</strong> <span class="countdown">${secondsLeft > 0 ? secondsLeft + ' saniye kaldı' : 'Süre doldu'}</span></div>
+              <div><strong>Sayaç:</strong> <span class="countdown">${secondsLeft > 0 ? `${String(Math.floor(secondsLeft/3600)).padStart(2,'0')}h${String(Math.floor((secondsLeft%3600)/60)).padStart(2,'0')}m${String(secondsLeft%60).padStart(2,'0')}s` : 'Süre doldu'}</span></div>
             </div>
             <div style="margin-top:15px; text-align:right;">
               ${actionBtn}
