@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PayDay Scheduler | Zaman Kilitli Transfer Otomasyonu</title>
+  <title>PayWhen Scheduler | Zaman Kilitli Transfer Otomasyonu</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -232,7 +232,7 @@
       box-shadow: inset 0 0 40px rgba(245, 158, 11, 0.05);
     }
     .cheque::before {
-      content: "PAYDAY";
+      content: "PAYWHEN";
       position: absolute;
       font-size: 110px;
       font-weight: 900;
@@ -350,7 +350,7 @@
   <header>
     <div class="container header-content">
       <div class="logo">
-        <span><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary)"></i> PayDay</span>
+        <span><i class="fa-solid fa-clock-rotate-left" style="color:var(--primary)"></i> PayWhen</span>
         <span class="logo-badge">Scheduler</span>
       </div>
       <button class="btn btn-outline" id="btnConnect" style="width:auto;" onclick="connectWallet()"><i class="fa-solid fa-wallet"></i> Cüzdan Bağla</button>
@@ -446,8 +446,8 @@
       <span class="close-modal" onclick="closeCheque()">&times;</span>
       <div class="cheque">
         <div class="cheque-header">
-          <div class="cheque-title"><i class="fa-solid fa-file-invoice-dollar"></i> PayDay Blokzincir Ödeme Çeki</div>
-          <div class="cheque-no" id="modalChequeNo">NO: PAYDAY-000001</div>
+          <div class="cheque-title"><i class="fa-solid fa-file-invoice-dollar"></i> PayWhen Blokzincir Ödeme Çeki</div>
+          <div class="cheque-no" id="modalChequeNo">NO: PAYWHEN-000001</div>
         </div>
         <div class="cheque-body">
           <div>
@@ -474,7 +474,7 @@
           </div>
           <div class="cheque-signature">
             <div class="cheque-signature-line"></div>
-            <div>PayDay Protokolü Garantisi</div>
+            <div>PayWhen Protokolü Garantisi</div>
           </div>
         </div>
       </div>
@@ -600,7 +600,7 @@
       const o = mockOrders.find(order => order.id === id);
       if (!o) return;
 
-      document.getElementById('modalChequeNo').innerText = `NO: PAYDAY-${String(o.id).padStart(6, '0')}`;
+      document.getElementById('modalChequeNo').innerText = `NO: PAYWHEN-${String(o.id).padStart(6, '0')}`;
       document.getElementById('modalSender').innerText = userAddress ? userAddress : 'Gönderici Cüzdanı Bağlı Değil';
       document.getElementById('modalReceiver').innerText = o.receiver;
       document.getElementById('modalExecuteAt').innerText = new Date(o.executeAt * 1000).toLocaleString();

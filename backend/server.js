@@ -21,7 +21,7 @@ const ARC_RPC_URL = process.env.ARC_RPC_URL || 'https://rpc.testnet.arc.network'
 const provider = new ethers.providers.JsonRpcProvider(ARC_RPC_URL);
 
 // Relayer wallet (uses the admin private key to execute orders and pay gas)
-const RELAYER_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY || '***REDACTED_PRIVATE_KEY***';
+const RELAYER_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
 const wallet = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
 
 const SCHEDULER_ADDRESS = process.env.SCHEDULER_ADDRESS || '0x0000000000000000000000000000000000000000'; // updated on deploy
@@ -91,6 +91,6 @@ app.get('/api/status', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`[Backend] PayDay Scheduler Backend running on port ${PORT}`);
+  console.log(`[Backend] PayWhen Scheduler Backend running on port ${PORT}`);
   pollAndExecuteOrders(); // Initial poll
 });
