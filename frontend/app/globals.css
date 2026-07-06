@@ -1,0 +1,320 @@
+
+    :root {
+      --bg: #07090e;
+      --bg-card: #0c111d;
+      --bg-panel: #111827;
+      --border: rgba(255, 255, 255, 0.08);
+      --primary: #f59e0b; /* Gold theme */
+      --primary-hover: #d97706;
+      --accent: #3b82f6;
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      line-height: 1.6;
+      background-image: linear-gradient(rgba(7, 9, 14, 0.55), rgba(7, 9, 14, 0.65)), url('/bg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+    }
+
+    /* TOP STATUS BAR */
+    .top-status-bar {
+      background: rgba(12, 17, 29, 0.7);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 0;
+      font-size: 13px;
+    }
+    .top-status-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+    .gas-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-muted);
+    }
+    .gas-badge {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--primary);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+    .tooltip {
+      position: relative;
+      cursor: help;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+    .tooltip:hover::after {
+      content: "Otomatik Gas Havuzu: Geleceğe dönük planlanan işlemlerin, cüzdanınızdan gas ücreti harcamadan sistem (relayer) tarafından otomatik çalıştırılmasını sağlayan bakiyedir.";
+      position: absolute;
+      top: 25px;
+      right: 0;
+      width: 250px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      line-height: 1.4;
+    }
+
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 20px 0;
+      background: rgba(7, 9, 14, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .header-content { display: flex; justify-content: space-between; align-items: center; }
+    .logo { display: flex; align-items: center; gap: 10px; font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 900; color: #fff; }
+    .logo-badge { background: linear-gradient(135deg, var(--primary), #b45309); padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+
+    /* LAYOUT */
+    .grid { display: grid; grid-template-columns: 420px 1fr; gap: 30px; padding: 40px 0; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+    .panel { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 30px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); }
+    .panel-title { font-family: 'Outfit', sans-serif; font-size: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+
+    .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+    label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+    input, select { background: rgba(255, 255, 255, 0.04); border: 1px solid var(--border); padding: 12px 16px; border-radius: 8px; color: #fff; font-size: 14px; outline: none; transition: all 0.2s; }
+    input:focus { border-color: var(--primary); }
+    /* Hide number input spinner arrows */
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+
+    /* TOKEN SELECTOR */
+    .token-selector { display: flex; gap: 10px; }
+    .token-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 12px;
+      border-radius: 8px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .token-btn:hover { background: rgba(255, 255, 255, 0.08); }
+    .token-btn.active {
+      border-color: var(--primary);
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--primary);
+    }
+
+    /* INPUT WRAPPER WITH SUFFIX */
+    .input-wrapper { position: relative; display: flex; align-items: center; }
+    .input-wrapper input { width: 100%; padding-right: 80px; }
+    .input-suffix {
+      position: absolute;
+      right: 16px;
+      font-weight: 700;
+      color: var(--primary);
+      pointer-events: none;
+      font-size: 14px;
+    }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; width: 100%; text-align: center; }
+    .btn-primary { background: var(--primary); color: #000; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-outline { background: transparent; border-color: var(--border); color: var(--text); }
+    .btn-outline:hover { background: rgba(255, 255, 255, 0.05); }
+    .btn-danger { background: rgba(239, 68, 68, 0.15); border-color: rgba(239, 68, 68, 0.3); color: var(--danger); width: auto; padding: 6px 14px; font-size: 12px; }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn-success { background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: var(--success); width: auto; padding: 6px 14px; font-size: 12px; }
+    .btn-success:hover { background: var(--success); color: #000; }
+    .btn-demo { background: rgba(59, 130, 246, 0.15); border-color: rgba(59, 130, 246, 0.3); color: var(--accent); width: auto; padding: 6px 14px; font-size: 12px; }
+    .btn-demo:hover { background: var(--accent); color: #fff; }
+
+    /* ORDER CARD */
+    .order-item { background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 15px; position: relative; }
+    .order-header { display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 10px; }
+    .order-id { font-size: 14px; font-weight: 700; color: var(--primary); }
+    .order-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; }
+    .status-pending { background: rgba(245, 158, 11, 0.15); color: var(--primary); }
+    .status-locked { background: rgba(59, 130, 246, 0.15); color: var(--accent); }
+    .status-executed { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .status-cancelled { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+
+    .order-details { font-size: 13px; color: var(--text-muted); display: grid; grid-template-columns: 1fr 1fr; gap: 8px 15px; }
+    .countdown { font-weight: 700; color: var(--accent); }
+    .cancel-countdown { font-weight: 700; color: var(--primary); }
+
+    /* CHEQUE MODAL */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      backdrop-filter: blur(8px);
+    }
+    .modal-content {
+      background: #0f172a;
+      border: 2px solid var(--primary);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 650px;
+      padding: 30px;
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+    .close-modal {
+      position: absolute;
+      top: 15px; right: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    .close-modal:hover { color: #fff; }
+
+    /* CHEQUE DESIGN */
+    .cheque {
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border: 3px double var(--primary);
+      padding: 25px;
+      border-radius: 12px;
+      color: #cbd5e1;
+      font-family: 'Outfit', sans-serif;
+      position: relative;
+      overflow: hidden;
+      box-shadow: inset 0 0 40px rgba(245, 158, 11, 0.05);
+    }
+    .cheque::before {
+      content: "PAYWHEN";
+      position: absolute;
+      font-size: 110px;
+      font-weight: 900;
+      color: rgba(245, 158, 11, 0.02);
+      top: 15%; left: 10%;
+      letter-spacing: 10px;
+      transform: rotate(-10deg);
+      pointer-events: none;
+    }
+    .cheque-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .cheque-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .cheque-no {
+      font-size: 14px;
+      font-family: monospace;
+      color: var(--text-muted);
+    }
+    .cheque-body {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .cheque-row {
+      margin-bottom: 15px;
+      border-bottom: 1px dashed rgba(255,255,255,0.1);
+      padding-bottom: 5px;
+    }
+    .cheque-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      display: block;
+    }
+    .cheque-value {
+      font-size: 14px;
+      color: #fff;
+      font-weight: 500;
+      word-break: break-all;
+    }
+    .cheque-amount-box {
+      border: 2px solid var(--primary);
+      background: rgba(245, 158, 11, 0.08);
+      padding: 15px 25px;
+      border-radius: 8px;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      align-self: center;
+    }
+    .cheque-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding-top: 15px;
+      margin-top: 20px;
+    }
+    .cheque-status-stamp {
+      border: 2px dashed var(--success);
+      color: var(--success);
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      transform: rotate(-3deg);
+      display: inline-block;
+    }
+    .cheque-signature {
+      text-align: right;
+      font-family: 'Outfit', sans-serif;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .cheque-signature-line {
+      border-bottom: 1px solid #fff;
+      width: 150px;
+      margin-bottom: 5px;
+      display: inline-block;
+    }
+  

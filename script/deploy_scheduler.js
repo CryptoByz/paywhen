@@ -51,7 +51,13 @@ async function main() {
   // Connect to ARC Testnet
   const rpcUrl = 'https://rpc.testnet.arc.network';
   const provider = new ethers.providers.JsonRpcProvider(rpcUrl);
-  const privateKey = '***REDACTED_PRIVATE_KEY***';
+  
+  // Load environment variables from backend/.env
+  require('dotenv').config({ path: path.join(__dirname, '../backend/.env') });
+  const privateKey = process.env.ADMIN_PRIVATE_KEY;
+  if (!privateKey) {
+    throw new Error('ADMIN_PRIVATE_KEY is not defined in backend/.env');
+  }
   const wallet = new ethers.Wallet(privateKey, provider);
 
   console.log(`Deploying from account: ${wallet.address}`);
@@ -74,7 +80,7 @@ async function main() {
   const envPath = path.join(__dirname, '../backend/.env');
   const envContent = `PORT=3002
 ARC_RPC_URL=https://rpc.testnet.arc.network
-ADMIN_PRIVATE_KEY=***REDACTED_PRIVATE_KEY***
+ADMIN_PRIVATE_KEY=${privateKey}
 SCHEDULER_ADDRESS=${deployed.address}
 `;
   fs.writeFileSync(envPath, envContent);

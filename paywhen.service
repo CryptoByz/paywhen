@@ -1,0 +1,14 @@
+[Unit]
+Description=PayWhen Scheduler Backend
+After=network.target
+
+[Service]
+WorkingDirectory=/home/rpi5/payday/backend
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=10
+User=rpi5
+EnvironmentFile=/home/rpi5/payday/backend/.env
+
+[Install]
+WantedBy=multi-user.target

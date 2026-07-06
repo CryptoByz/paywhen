@@ -2,9 +2,9 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { ethers } from 'ethers';
-
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { initDb, saveOrder, getOrders, updateOrderStatus } from './database.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,9 +22,12 @@ const provider = new ethers.providers.JsonRpcProvider(ARC_RPC_URL);
 
 // Relayer wallet (uses the admin private key to execute orders and pay gas)
 const RELAYER_PRIVATE_KEY = process.env.ADMIN_PRIVATE_KEY;
+if (!RELAYER_PRIVATE_KEY) {
+  console.error('CRITICAL ERROR: ADMIN_PRIVATE_KEY is not defined in backend/.env!');
+}
 const wallet = new ethers.Wallet(RELAYER_PRIVATE_KEY, provider);
 
-const SCHEDULER_ADDRESS = process.env.SCHEDULER_ADDRESS || '0x0000000000000000000000000000000000000000'; // updated on deploy
+const SCHEDULER_ADDRESS = process.env.SCHEDULER_ADDRESS || '0x0e13299e56724Ce459e621b370f89552F87ede8B';
 const SCHEDULER_ABI = [
   "function executeOrder(uint256 orderId) external",
   "function nextOrderId() external view returns (uint256)",
@@ -32,11 +35,10 @@ const SCHEDULER_ABI = [
 ];
 const schedulerContract = new ethers.Contract(SCHEDULER_ADDRESS, SCHEDULER_ABI, wallet);
 
-// --- Poller Loop (Yöntem 2 Core Automation) ---
-// Scans for executeAt <= block.timestamp periodically and executes them automatically
+// --- Poller Loop (Blockchain Sync & Automation) ---
 async function pollAndExecuteOrders() {
   try {
-    if (SCHEDULER_ADDRESS === '0x0000000000000000000000000000000000000000') {
+    if (!SCHEDULER_ADDRESS || SCHEDULER_ADDRESS === '0x0000000000000000000000000000000000000000') {
       console.log('[Poller] Waiting for contract deployment...');
       return;
     }
@@ -52,6 +54,13 @@ async function pollAndExecuteOrders() {
       const order = await schedulerContract.orders(i);
       const executeAt = order.executeAt.toNumber();
       
+      // Auto-sync database with blockchain states if they differ
+      if (order.executed) {
+        await updateOrderStatus(i, 'executed');
+      } else if (order.cancelled) {
+        await updateOrderStatus(i, 'cancelled');
+      }
+
       // If time reached and not executed/cancelled
       if (now >= executeAt && !order.executed && !order.cancelled) {
         console.log(`[Poller] Found pending order #${i} to execute. executeAt: ${executeAt}`);
@@ -62,6 +71,7 @@ async function pollAndExecuteOrders() {
           
           await tx.wait();
           console.log(`[Poller] Order #${i} successfully executed on-chain!`);
+          await updateOrderStatus(i, 'executed');
         } catch (err) {
           console.error(`[Poller] Error executing Order #${i}:`, err.message);
         }
@@ -72,10 +82,7 @@ async function pollAndExecuteOrders() {
   }
 }
 
-// Run poller every 15 seconds
-setInterval(pollAndExecuteOrders, 15000);
-
-// API Endpoints for frontend status
+// REST API Endpoints
 app.get('/api/status', async (req, res) => {
   try {
     const balance = await provider.getBalance(wallet.address);
@@ -90,7 +97,56 @@ app.get('/api/status', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`[Backend] PayWhen Scheduler Backend running on port ${PORT}`);
-  pollAndExecuteOrders(); // Initial poll
+// GET user orders (persistent)
+app.get('/api/orders', async (req, res) => {
+  const { address } = req.query;
+  if (!address || typeof address !== 'string') {
+    return res.status(400).json({ error: 'Missing or invalid address query parameter' });
+  }
+  try {
+    const orders = await getOrders(address);
+    res.json(orders);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
+
+// POST save scheduled order
+app.post('/api/orders', async (req, res) => {
+  const order = req.body;
+  if (!order || !order.id) {
+    return res.status(400).json({ error: 'Invalid order object' });
+  }
+  try {
+    await saveOrder(order);
+    console.log(`[Backend] Saved scheduled order #${order.id} to SQLite`);
+    res.status(201).json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST cancel scheduled order
+app.post('/api/orders/:id/cancel', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await updateOrderStatus(parseInt(id), 'cancelled');
+    console.log(`[Backend] Cancelled order #${id} in SQLite`);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Initialize Database & Run Express App
+async function startServer() {
+  await initDb();
+  
+  app.listen(PORT, () => {
+    console.log(`[Backend] PayWhen Scheduler Backend running on port ${PORT}`);
+    pollAndExecuteOrders(); // Initial poll
+    setInterval(pollAndExecuteOrders, 15000); // Run poller every 15 seconds
+  });
+}
+
+startServer();
