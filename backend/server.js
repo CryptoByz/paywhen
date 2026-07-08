@@ -83,6 +83,70 @@ async function pollAndExecuteOrders() {
 }
 
 // REST API Endpoints
+app.get('/api/agent-spec', (req, res) => {
+  res.json({
+    name: "PayWhen Scheduled Payment Protocol",
+    version: "1.0.0",
+    description: "An on-chain automatic payment scheduling protocol that allows locking USDC or EURC to be sent to a receiver wallet address at a specific future timestamp. Relayers automatically execute the payment on-chain at the specified time, sponsored by a gas fee relayer pool.",
+    contracts: {
+      network: "ARC Testnet (5042002)",
+      schedulerAddress: SCHEDULER_ADDRESS,
+      abi: [
+        "function scheduleOrder(address token, address receiver, uint256 amount, uint256 executeAt) external returns (uint256)",
+        "function cancelOrder(uint256 orderId) external",
+        "function orders(uint256) external view returns (uint256 id, address sender, address receiver, address token, uint256 amount, uint256 executeAt, uint256 createdAt, bool executed, bool cancelled)"
+      ]
+    },
+    tokens: {
+      USDC: "0x8172189cCE9b68F94Ee23fB5077748495B85098F",
+      EURC: "0xe2935B5077748495B85098F8172189cCE9b68F94"
+    },
+    endpoints: {
+      status: {
+        path: "/api/status",
+        method: "GET",
+        description: "Get current status, contract address, and relayer gas balance."
+      },
+      getOrders: {
+        path: "/api/orders",
+        method: "GET",
+        queryParams: {
+          address: "string (Required: Lowercase sender wallet address)"
+        },
+        description: "Retrieve all scheduled orders for a specific sender."
+      },
+      createOrder: {
+        path: "/api/orders",
+        method: "POST",
+        body: {
+          id: "number (On-chain orderId returned from scheduleOrder transaction)",
+          sender: "string (Lowercase sender wallet address)",
+          receiver: "string (Lowercase receiver wallet address)",
+          amount: "number (Float amount of tokens, e.g., 10.5)",
+          token_symbol: "string ('USDC' or 'EURC')",
+          token_address: "string (The token contract address)",
+          execute_at: "number (Unix timestamp in seconds for execution time)",
+          created_at: "number (Unix timestamp in seconds for order creation time)",
+          status: "string ('pending')"
+        },
+        description: "Register a successfully scheduled on-chain transaction into the database for monitoring."
+      },
+      cancelOrder: {
+        path: "/api/orders/{id}/cancel",
+        method: "POST",
+        description: "Cancel a scheduled order inside the database. Must also execute the cancelOrder transaction on-chain."
+      }
+    },
+    agentWorkflow: [
+      "Step 1: AI Agent approves the Scheduler Contract to spend the required token amount.",
+      "Step 2: AI Agent executes the 'scheduleOrder' transaction on the Solidity contract.",
+      "Step 3: AI Agent listens to the 'OrderScheduled' event to retrieve the generated orderId.",
+      "Step 4: AI Agent registers the scheduled order by calling POST '/api/orders' with the order details.",
+      "Step 5: The PayWhen automatic relayer will execute the payment at the scheduled time."
+    ]
+  });
+});
+
 app.get('/api/status', async (req, res) => {
   try {
     const balance = await provider.getBalance(wallet.address);
