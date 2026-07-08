@@ -244,10 +244,10 @@ export default function Home() {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.paywhen.xyz';
       const resp = await fetch(`${apiUrl}/api/status`);
       const data = await resp.json();
-      setRelayerGas(`${parseFloat(data.relayerBalanceETH).toFixed(4)} ETH`);
+      setRelayerGas(`${parseFloat(data.relayerBalanceETH).toFixed(2)} USDC`);
       setServerStatus('active');
     } catch (e) {
-      setRelayerGas('0.0000 ETH');
+      setRelayerGas('0.00 USDC');
       setServerStatus('offline');
     }
   };
