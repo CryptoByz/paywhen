@@ -200,7 +200,8 @@ export default function Home() {
   const [selectedTokenAddress, setSelectedTokenAddress] = useState<string>('0x8172189cCE9b68F94Ee23fB5077748495B85098F');
   const [receiverAddress, setReceiverAddress] = useState('');
   const [amount, setAmount] = useState('');
-  const [executeAt, setExecuteAt] = useState('');
+  const [executeDate, setExecuteDate] = useState('');
+  const [executeTimeStr, setExecuteTimeStr] = useState('');
   const [relayerGas, setRelayerGas] = useState('Yükleniyor...');
   const [serverStatus, setServerStatus] = useState<'active' | 'offline'>('active');
   const [loading, setLoading] = useState(false);
@@ -263,6 +264,15 @@ export default function Home() {
     saveAddressBook(newBook);
     setNewContactName('');
     setNewContactAddress('');
+  };
+
+  const setPresetTime = (hoursFromNow: number) => {
+    const d = new Date(Date.now() + hoursFromNow * 3600 * 1000);
+    const pad = (num: number) => String(num).padStart(2, '0');
+    const dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    setExecuteDate(dateStr);
+    setExecuteTimeStr(timeStr);
   };
 
   const t = (key: keyof typeof translations.tr) => {
@@ -414,7 +424,13 @@ export default function Home() {
       return;
     }
 
-    const executeTime = new Date(executeAt).getTime();
+    const executeDateTime = executeDate && executeTimeStr ? `${executeDate}T${executeTimeStr}` : '';
+    if (!executeDateTime) {
+      alert(t('selectFutureTime'));
+      return;
+    }
+
+    const executeTime = new Date(executeDateTime).getTime();
     if (executeTime <= Date.now()) {
       alert(t('selectFutureTime'));
       return;
@@ -441,7 +457,8 @@ export default function Home() {
       }
 
       let orderId = orders.length + 1;
-      const executeTimeSec = Math.floor(new Date(executeAt).getTime() / 1000);
+      const executeDateTime = executeDate && executeTimeStr ? `${executeDate}T${executeTimeStr}` : '';
+      const executeTimeSec = Math.floor(new Date(executeDateTime).getTime() / 1000);
 
       const provider = new ethers.providers.Web3Provider((window as any).ethereum);
       const signer = provider.getSigner();
@@ -503,7 +520,7 @@ export default function Home() {
       setOrders(prev => [newOrder, ...prev]);
 
       // Show success modal
-      const within24 = (new Date(executeAt).getTime() - Date.now()) < 24 * 3600 * 1000;
+      const within24 = (new Date(executeDateTime).getTime() - Date.now()) < 24 * 3600 * 1000;
       if (within24) {
         setSuccessModalMsg(t('orderCreatedNoCancel').replace('{orderId}', String(orderId)));
       } else {
@@ -514,7 +531,8 @@ export default function Home() {
       // Reset form
       setReceiverAddress('');
       setAmount('');
-      setExecuteAt('');
+      setExecuteDate('');
+      setExecuteTimeStr('');
     } catch (err: any) {
       console.error(err);
       alert(`${t('errorPrefix')}: ${err.message || err}`);
@@ -765,12 +783,61 @@ export default function Home() {
 
               <div className="form-group">
                 <label>{t('executeDateTime')}</label>
-                <input
-                  type="datetime-local"
-                  value={executeAt}
-                  onChange={e => setExecuteAt(e.target.value)}
-                  required
-                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input
+                    type="date"
+                    value={executeDate}
+                    onChange={e => setExecuteDate(e.target.value)}
+                    required
+                    style={{ flex: 1 }}
+                  />
+                  <input
+                    type="time"
+                    value={executeTimeStr}
+                    onChange={e => setExecuteTimeStr(e.target.value)}
+                    required
+                    style={{ flex: 1 }}
+                  />
+                </div>
+                
+                {/* Presets Grid */}
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '10px' }}>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => setPresetTime(1)}
+                  >
+                    +1 Saat (Hour)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => setPresetTime(6)}
+                  >
+                    +6 Saat (Hours)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => setPresetTime(24)}
+                  >
+                    +24 Saat (1 Gün)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => setPresetTime(72)}
+                  >
+                    +72 Saat (3 Gün)
+                  </button>
+                  <button
+                    type="button"
+                    className="preset-btn"
+                    onClick={() => setPresetTime(168)}
+                  >
+                    +1 Hafta (Week)
+                  </button>
+                </div>
               </div>
 
               <button type="submit" className="btn btn-primary" disabled={loading}>
