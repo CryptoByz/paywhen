@@ -13,7 +13,7 @@ Users can deposit USDC (or any ERC20) and schedule future transfer instructions.
   & target executeTime      smart contract          executeOrder()          designated receiver
 ```
 
-1. **🔒 Secure Deposit:** The user calls `scheduleOrder()`, locking their USDC safely in the smart contract. The user retains full ownership to **cancel and refund** their funds anytime prior to the execution date.
+1. **🔒 Secure Deposit:** The user calls `scheduleOrder()`, locking their USDC safely in the smart contract. For flexibility, the user retains ownership to **cancel and refund** their funds within a 24-hour cancellation window. After 24 hours, the order is locked permanently to guarantee payment to the receiver.
 2. **🕒 Automated Execution:** The backend runs a lightweight polling loop. Once `block.timestamp >= executeAt`, it broadcasts `executeOrder(orderId)` using a relayer wallet, paying the gas fee (which is free on ARC testnet using faucets).
 3. **🚫 Double-spending Protection:** Because tokens are held in escrow within the contract, there is zero risk of the user spending the funds before the execution date.
 
