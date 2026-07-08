@@ -1,7 +1,7 @@
 # PayWhen Scheduler | Zaman Kilitli Transfer Otomasyonu
 
 Trustless, on-chain time-locked payment scheduler built on the **ARC Network**. 
-Users can deposit USDC (or any ERC20) and schedule future transfer instructions. The PayWhen Backend Relayer automatically triggers and executes the transaction on-chain once the deadline is reached, paying the gas fee.
+Users can deposit USDC or EURC and schedule future transfer instructions. The PayWhen Backend Relayer automatically triggers and executes the transaction on-chain once the deadline is reached, paying the gas fee.
 
 ---
 
