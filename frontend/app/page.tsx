@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import { isCircleEnabled, registerPasskeyWallet, loginPasskeyWallet } from '../lib/circle';
+
 const SCHEDULER_ADDRESS = '0x0e13299e56724Ce459e621b370f89552F87ede8B';
 const SCHEDULER_ABI = [
   'function scheduleOrder(address token, address receiver, uint256 amount, uint256 executeAt) external returns (uint256)',
@@ -17,6 +18,149 @@ const ERC20_ABI = [
   'function balanceOf(address owner) external view returns (uint256)'
 ];
 
+const translations = {
+  tr: {
+    serverStatus: 'Sunucu Durumu',
+    active: 'Aktif',
+    offline: 'Çevrimdışı',
+    gasPool: 'Otomatik Gas Havuzu',
+    gasPoolTooltip: 'Otomatik Gas Havuzu: Geleceğe dönük planlanan işlemlerin, cüzdanınızdan gas ücreti harcamadan sistem (relayer) tarafından otomatik çalıştırılmasını sağlayan bakiyedir.',
+    smartWallet: 'Biyometrik Cüzdan',
+    metaMask: 'MetaMask',
+    disconnect: 'Çıkış',
+    connectMetaMask: 'MetaMask Bağla',
+    biometricWallet: 'Biyometrik Cüzdan',
+    scheduleNewTransfer: 'Yeni Transfer Planla',
+    paymentCurrency: 'Ödeme Para Birimi',
+    receiverAddress: 'Alıcı Cüzdan Adresi (Receiver)',
+    amountToSend: 'Gönderilecek Miktar',
+    executeDateTime: 'Gönderim Tarihi & Saati (Gelecek Zaman)',
+    sendingTx: 'İşlem Gönderiliyor...',
+    lockAndSchedule: 'Kilitle ve Planla',
+    scheduledOrders: 'Planlanmış Emirleriniz',
+    noOrders: 'Henüz planlanmış bir emir bulunmuyor.',
+    cancellable: 'İptal Edilebilir',
+    cancelTime: 'İptal Süresi',
+    cancel: 'İptal Et',
+    locked: 'Geri Dönüşsüz',
+    guaranteedLock: 'Garantili Kilitleme Tamamlandı',
+    shareCheque: 'Çek Yaprağı Paylaş',
+    sent: 'Gönderildi',
+    cancelled: 'İptal Edildi',
+    expired: 'Süre doldu',
+    receiver: 'Alıcı',
+    amount: 'Miktar',
+    date: 'Tarih',
+    countdown: 'Sayaç',
+    txSuccess: 'İşlem Başarılı!',
+    done: 'Tamam',
+    warning: 'Dikkat!',
+    warningMsg: 'Gönderinizi <strong>24 saatten kısa</strong> bir süre içinde gerçekleşecek şekilde planladınız.<br><br>Gönderimi onayladığınız takdirde <strong>iptal etme şansınız olmayacak.</strong><br>Onaylıyor musunuz?',
+    discard: 'Vazgeç',
+    yesLock: 'Evet, Kilitle',
+    chequeTitle: 'PayWhen Blokzincir Ödeme Çeki',
+    lockedAndGuaranteed: '🔒 Kilitli ve Garantili',
+    protocolGuarantee: 'PayWhen Protokolü Garantisi',
+    chequeLabelSender: 'Gönderen (Cüzdan)',
+    chequeLabelReceiver: 'Alıcı (Receiver)',
+    chequeLabelTime: 'Planlanan Gönderim Zamanı',
+    passkeyTitle: 'Biyometrik Cüzdan (Passkey)',
+    passkeySimWarning: 'Circle Web3 Services API anahtarları henüz tanımlanmadığı için bu işlem yerel tarayıcı WebAuthn API\'sini simüle ederek TouchID/FaceID akışını canlandıracaktır.',
+    usernamePlaceholder: 'Örn: ahmet@paywhen.xyz',
+    createPasskey: 'Yeni Biyometrik Cüzdan Yarat',
+    loginPasskey: 'Mevcut Cüzdana Giriş Yap',
+    usernameLabel: 'Kullanıcı Adı veya E-posta',
+    orderId: 'Emir',
+    loading: 'Yükleniyor...',
+    
+    // Alerts/Errors
+    walletRejected: 'Cüzdan bağlantısı reddedildi.',
+    metamaskNotFound: 'MetaMask cüzdanı bulunamadı.',
+    enterUsername: 'Lütfen kullanıcı adı girin.',
+    passkeyCreated: 'Biyometrik cüzdan başarıyla oluşturuldu!',
+    loginSuccess: 'Giriş başarılı!',
+    circleRegError: 'Circle Kayıt Hatası',
+    circleLoginError: 'Circle Giriş Hatası',
+    errorPrefix: 'Hata',
+    connectWalletFirst: 'Lütfen önce cüzdanınızı bağlayın.',
+    selectFutureTime: 'Lütfen gelecek bir tarih ve saat seçin.',
+    orderCreatedNoCancel: 'Emir <strong>#{orderId}</strong> başarıyla oluşturuldu.<br><br>Bu emir 24 saatten kısa süre içinde gönderileceğinden <strong>iptal edilemez.</strong>',
+    orderCreatedWithCancel: 'Emir <strong>#{orderId}</strong> başarıyla planlandı.<br><br>İptal etmek isterseniz ilk <strong>24 saat</strong> içinde bu hakkı kullanabilirsiniz.',
+    cancelExpired: '24 saatlik iptal süresi dolduğu için bu işlem artık geri alınamaz.',
+    orderCancelledMsg: 'Emir <strong>#{id}</strong> iptal edildi ve kilitli fonlar cüzdanınıza iade edildi.',
+  },
+  en: {
+    serverStatus: 'Server Status',
+    active: 'Active',
+    offline: 'Offline',
+    gasPool: 'Auto Gas Pool',
+    gasPoolTooltip: 'Auto Gas Pool: The balance used to run scheduled operations automatically without paying gas from your wallet (paid by relayer).',
+    smartWallet: 'Smart Wallet',
+    metaMask: 'MetaMask',
+    disconnect: 'Disconnect',
+    connectMetaMask: 'Connect MetaMask',
+    biometricWallet: 'Passkey Wallet',
+    scheduleNewTransfer: 'Schedule New Transfer',
+    paymentCurrency: 'Payment Currency',
+    receiverAddress: 'Receiver Wallet Address',
+    amountToSend: 'Amount to Send',
+    executeDateTime: 'Execution Date & Time (Future)',
+    sendingTx: 'Sending Transaction...',
+    lockAndSchedule: 'Lock & Schedule',
+    scheduledOrders: 'Your Scheduled Orders',
+    noOrders: 'No scheduled orders found yet.',
+    cancellable: 'Cancellable',
+    cancelTime: 'Cancellation Time',
+    cancel: 'Cancel',
+    locked: 'Locked',
+    guaranteedLock: 'Guaranteed Lock Completed',
+    shareCheque: 'Share Cheque Leaf',
+    sent: 'Sent',
+    cancelled: 'Cancelled',
+    expired: 'Expired',
+    receiver: 'Receiver',
+    amount: 'Amount',
+    date: 'Date',
+    countdown: 'Countdown',
+    txSuccess: 'Transaction Successful!',
+    done: 'Done',
+    warning: 'Warning!',
+    warningMsg: 'You have scheduled your transfer to execute within <strong style="color: var(--primary)">less than 24 hours</strong>.<br><br>If you confirm, you <strong style="color: var(--danger)">will not have the chance to cancel it.</strong><br>Do you confirm?',
+    discard: 'Cancel',
+    yesLock: 'Yes, Lock',
+    chequeTitle: 'PayWhen Blockchain Payment Cheque',
+    lockedAndGuaranteed: '🔒 Locked & Guaranteed',
+    protocolGuarantee: 'PayWhen Protocol Guarantee',
+    chequeLabelSender: 'Sender (Wallet)',
+    chequeLabelReceiver: 'Receiver (Wallet)',
+    chequeLabelTime: 'Scheduled Execution Time',
+    passkeyTitle: 'Passkey Wallet',
+    passkeySimWarning: 'Since Circle Web3 Services API keys are not defined yet, this process will simulate the TouchID/FaceID flow by using the local browser WebAuthn API.',
+    usernamePlaceholder: 'e.g. john@paywhen.xyz',
+    createPasskey: 'Create New Passkey Wallet',
+    loginPasskey: 'Login to Existing Wallet',
+    usernameLabel: 'Username or Email',
+    orderId: 'Order',
+    loading: 'Loading...',
+    
+    // Alerts/Errors
+    walletRejected: 'Wallet connection rejected.',
+    metamaskNotFound: 'MetaMask wallet not found.',
+    enterUsername: 'Please enter a username.',
+    passkeyCreated: 'Passkey wallet successfully created!',
+    loginSuccess: 'Login successful!',
+    circleRegError: 'Circle Registration Error',
+    circleLoginError: 'Circle Login Error',
+    errorPrefix: 'Error',
+    connectWalletFirst: 'Please connect your wallet first.',
+    selectFutureTime: 'Please select a future date and time.',
+    orderCreatedNoCancel: 'Order <strong>#{orderId}</strong> successfully created.<br><br>This order cannot be cancelled as it is scheduled within <strong>24 hours.</strong>',
+    orderCreatedWithCancel: 'Order <strong>#{orderId}</strong> successfully scheduled.<br><br>If you want to cancel, you can do so within the first <strong>24 hours.</strong>',
+    cancelExpired: 'This operation cannot be cancelled because the 24-hour cancellation window has expired.',
+    orderCancelledMsg: 'Order <strong>#{id}</strong> cancelled and locked funds returned to your wallet.',
+  }
+};
+
 interface Order {
   id: number;
   sender: string;
@@ -30,6 +174,7 @@ interface Order {
 }
 
 export default function Home() {
+  const [language, setLanguage] = useState<'tr' | 'en'>('tr');
   const [userAddress, setUserAddress] = useState<string | null>(null);
   const [loginMethod, setLoginMethod] = useState<'ethers' | 'circle' | null>(null);
   const [passkeyUsername, setPasskeyUsername] = useState('');
@@ -59,6 +204,31 @@ export default function Home() {
 
   // Time ticker state (just used to trigger render tick for count downs)
   const [time, setTime] = useState(Date.now());
+
+  // Load language preference from localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedLang = localStorage.getItem('paywhen_lang') as 'tr' | 'en';
+      if (savedLang === 'tr' || savedLang === 'en') {
+        setLanguage(savedLang);
+        setRelayerGas(savedLang === 'en' ? 'Loading...' : 'Yükleniyor...');
+      }
+    }
+  }, []);
+
+  const t = (key: keyof typeof translations.tr) => {
+    return translations[language][key] || translations.tr[key] || '';
+  };
+
+  const handleLanguageChange = (lang: 'tr' | 'en') => {
+    setLanguage(lang);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('paywhen_lang', lang);
+    }
+    if (relayerGas === 'Yükleniyor...' || relayerGas === 'Loading...') {
+      setRelayerGas(lang === 'en' ? 'Loading...' : 'Yükleniyor...');
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setTime(Date.now()), 1000);
@@ -113,10 +283,10 @@ export default function Home() {
         setUserAddress(accounts[0]);
         setLoginMethod('ethers');
       } catch (err: any) {
-        alert('Cüzdan bağlantısı reddedildi.');
+        alert(t('walletRejected'));
       }
     } else {
-      alert('MetaMask cüzdanı bulunamadı.');
+      alert(t('metamaskNotFound'));
     }
   };
 
@@ -128,7 +298,7 @@ export default function Home() {
 
   const handleCircleRegister = async () => {
     if (!passkeyUsername) {
-      alert('Lütfen kullanıcı adı girin.');
+      alert(t('enterUsername'));
       return;
     }
     setLoading(true);
@@ -138,10 +308,10 @@ export default function Home() {
       setCircleUsername(session.username);
       setLoginMethod('circle');
       setShowPasskeyModal(false);
-      alert('Biyometrik cüzdan başarıyla oluşturuldu!');
+      alert(t('passkeyCreated'));
     } catch (err: any) {
       console.error(err);
-      alert(`Circle Kayıt Hatası: ${err.message || err}`);
+      alert(`${t('circleRegError')}: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
@@ -149,7 +319,7 @@ export default function Home() {
 
   const handleCircleLogin = async () => {
     if (!passkeyUsername) {
-      alert('Lütfen kullanıcı adı girin.');
+      alert(t('enterUsername'));
       return;
     }
     setLoading(true);
@@ -159,10 +329,10 @@ export default function Home() {
       setCircleUsername(session.username);
       setLoginMethod('circle');
       setShowPasskeyModal(false);
-      alert('Giriş başarılı!');
+      alert(t('loginSuccess'));
     } catch (err: any) {
       console.error(err);
-      alert(`Circle Giriş Hatası: ${err.message || err}`);
+      alert(`${t('circleLoginError')}: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
@@ -179,13 +349,13 @@ export default function Home() {
   const scheduleTransferSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userAddress) {
-      alert('Lütfen önce cüzdanınızı bağlayın.');
+      alert(t('connectWalletFirst'));
       return;
     }
 
     const executeTime = new Date(executeAt).getTime();
     if (executeTime <= Date.now()) {
-      alert('Lütfen gelecek bir tarih ve saat seçin.');
+      alert(t('selectFutureTime'));
       return;
     }
 
@@ -274,9 +444,9 @@ export default function Home() {
       // Show success modal
       const within24 = (new Date(executeAt).getTime() - Date.now()) < 24 * 3600 * 1000;
       if (within24) {
-        setSuccessModalMsg(`Emir <strong>#${orderId}</strong> başarıyla oluşturuldu.<br><br>Bu emir 24 saatten kısa süre içinde gönderileceğinden <strong>iptal edilemez.</strong>`);
+        setSuccessModalMsg(t('orderCreatedNoCancel').replace('{orderId}', String(orderId)));
       } else {
-        setSuccessModalMsg(`Emir <strong>#${orderId}</strong> başarıyla planlandı.<br><br>İptal etmek isterseniz ilk <strong>24 saat</strong> içinde bu hakkı kullanabilirsiniz.`);
+        setSuccessModalMsg(t('orderCreatedWithCancel').replace('{orderId}', String(orderId)));
       }
       setShowSuccessModal(true);
 
@@ -286,7 +456,7 @@ export default function Home() {
       setExecuteAt('');
     } catch (err: any) {
       console.error(err);
-      alert(`Hata: ${err.message || err}`);
+      alert(`${t('errorPrefix')}: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
@@ -298,7 +468,7 @@ export default function Home() {
 
     const secondsElapsed = Math.floor(Date.now() / 1000) - o.created_at;
     if (secondsElapsed > 24 * 3600) {
-      alert('24 saatlik iptal süresi dolduğu için bu işlem artık geri alınamaz.');
+      alert(t('cancelExpired'));
       return;
     }
 
@@ -326,11 +496,11 @@ export default function Home() {
       }
 
       setOrders(prev => prev.map(x => x.id === id ? { ...x, status: 'cancelled' } : x));
-      setSuccessModalMsg(`Emir <strong>#${id}</strong> iptal edildi ve kilitli fonlar cüzdanınıza iade edildi.`);
+      setSuccessModalMsg(t('orderCancelledMsg').replace('{id}', String(id)));
       setShowSuccessModal(true);
     } catch (err: any) {
       console.error(err);
-      alert(`Hata: ${err.message || err}`);
+      alert(`${t('errorPrefix')}: ${err.message || err}`);
     } finally {
       setLoading(false);
     }
@@ -347,23 +517,50 @@ export default function Home() {
       <div className="top-status-bar">
         <div className="container top-status-content">
           <div className="status-indicator">
-            <span>Sunucu Durumu:</span>
+            <span>{t('serverStatus')}:</span>
             {serverStatus === 'active' ? (
               <span style={{ color: 'var(--success)' }}>
-                <i className="fa-solid fa-circle-check"></i> Aktif
+                <i className="fa-solid fa-circle-check"></i> {t('active')}
               </span>
             ) : (
               <span style={{ color: 'var(--danger)' }}>
-                <i className="fa-solid fa-circle-xmark"></i> Çevrimdışı
+                <i className="fa-solid fa-circle-xmark"></i> {t('offline')}
               </span>
             )}
           </div>
-          <div className="gas-info">
-            <span>Otomatik Gas Havuzu:</span>
-            <span className="gas-badge">{relayerGas}</span>
-            <span className="tooltip" title="Otomatik Gas Havuzu: Geleceğe dönük planlanan işlemlerin, cüzdanınızdan gas ücreti harcamadan sistem (relayer) tarafından otomatik çalıştırılmasını sağlayan bakiyedir.">
-              <i className="fa-regular fa-circle-question"></i>
-            </span>
+          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+            <div className="gas-info">
+              <span>{t('gasPool')}:</span>
+              <span className="gas-badge">{relayerGas}</span>
+              <span className="tooltip" data-tooltip={t('gasPoolTooltip')}>
+                <i className="fa-regular fa-circle-question"></i>
+              </span>
+            </div>
+
+            {/* Language Switcher */}
+            <button
+              onClick={() => handleLanguageChange(language === 'en' ? 'tr' : 'en')}
+              title={language === 'en' ? 'Switch to Turkish' : 'English\'e geç'}
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid var(--border)',
+                color: 'var(--text)',
+                borderRadius: '20px',
+                padding: '4px 12px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <span>{language === 'en' ? '🇬🇧' : '🇹🇷'}</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '9px', letterSpacing: '0.5px' }}>
+                {language === 'en' ? 'EN' : 'TR'}
+              </span>
+            </button>
           </div>
         </div>
       </div>
@@ -396,16 +593,16 @@ export default function Home() {
                 {userAddress.substring(0, 6)}...{userAddress.substring(38)}
               </span>
               <button className="btn btn-outline" style={{ width: 'auto', padding: '6px 12px', fontSize: '12px' }} onClick={disconnectWallet}>
-                <i className="fa-solid fa-right-from-bracket"></i> Çıkış
+                <i className="fa-solid fa-right-from-bracket"></i> {t('disconnect')}
               </button>
             </div>
           ) : (
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
               <button className="btn btn-outline" style={{ width: 'auto' }} onClick={connectWallet}>
-                <i className="fa-solid fa-wallet"></i> MetaMask Bağla
+                <i className="fa-solid fa-wallet"></i> {t('connectMetaMask')}
               </button>
               <button className="btn btn-primary" style={{ width: 'auto' }} onClick={() => setShowPasskeyModal(true)}>
-                <i className="fa-solid fa-fingerprint"></i> Biyometrik Cüzdan
+                <i className="fa-solid fa-fingerprint"></i> {t('biometricWallet')}
               </button>
             </div>
           )}
@@ -417,13 +614,13 @@ export default function Home() {
           {/* SCHEDULE PANEL */}
           <div className="panel">
             <h2 className="panel-title">
-              <i className="fa-regular fa-calendar-plus" style={{ color: 'var(--primary)' }}></i> Yeni Transfer Planla
+              <i className="fa-regular fa-calendar-plus" style={{ color: 'var(--primary)' }}></i> {t('scheduleNewTransfer')}
             </h2>
 
             <form onSubmit={scheduleTransferSubmit}>
               {/* Currency Selection */}
               <div className="form-group">
-                <label>Ödeme Para Birimi</label>
+                <label>{t('paymentCurrency')}</label>
                 <div className="token-selector">
                   <button
                     type="button"
@@ -447,7 +644,7 @@ export default function Home() {
               </div>
 
               <div className="form-group">
-                <label>Alıcı Cüzdan Adresi (Receiver)</label>
+                <label>{t('receiverAddress')}</label>
                 <input
                   type="text"
                   placeholder="0x..."
@@ -459,7 +656,7 @@ export default function Home() {
 
               {/* Amount Input */}
               <div className="form-group">
-                <label>Gönderilecek Miktar</label>
+                <label>{t('amountToSend')}</label>
                 <div className="input-wrapper">
                   <input
                     type="number"
@@ -474,7 +671,7 @@ export default function Home() {
               </div>
 
               <div className="form-group">
-                <label>Gönderim Tarihi & Saati (Gelecek Zaman)</label>
+                <label>{t('executeDateTime')}</label>
                 <input
                   type="datetime-local"
                   value={executeAt}
@@ -485,10 +682,10 @@ export default function Home() {
 
               <button type="submit" className="btn btn-primary" disabled={loading}>
                 {loading ? (
-                  <span>İşlem Gönderiliyor...</span>
+                  <span>{t('sendingTx')}</span>
                 ) : (
                   <>
-                    <i className="fa-solid fa-lock"></i> Kilitle ve Planla
+                    <i className="fa-solid fa-lock"></i> {t('lockAndSchedule')}
                   </>
                 )}
               </button>
@@ -498,13 +695,13 @@ export default function Home() {
           {/* SCHEDULED ORDERS LIST */}
           <div className="panel">
             <h2 className="panel-title">
-              <i className="fa-solid fa-list-check" style={{ color: 'var(--primary)' }}></i> Planlanmış Emirleriniz
+              <i className="fa-solid fa-list-check" style={{ color: 'var(--primary)' }}></i> {t('scheduledOrders')}
             </h2>
 
             <div id="ordersList">
               {orders.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--text-muted)' }}>
-                  Henüz planlanmış bir emir bulunmuyor.
+                  {t('noOrders')}
                 </div>
               ) : (
                 orders.map(o => {
@@ -525,42 +722,42 @@ export default function Home() {
                       const cs = absCancel % 60;
                       const cancelStr = `${pad(ch)}h${pad(cm)}m${pad(cs)}s`;
 
-                      statusBadge = <span className="order-status status-pending">İptal Edilebilir</span>;
+                      statusBadge = <span className="order-status status-pending">{t('cancellable')}</span>;
                       actionBtn = (
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
                           <span className="cancel-countdown" style={{ fontSize: '11px' }}>
-                            <i className="fa-regular fa-clock"></i> İptal Süresi: {cancelStr}
+                            <i className="fa-regular fa-clock"></i> {t('cancelTime')}: {cancelStr}
                           </span>
                           <button className="btn btn-danger" onClick={() => cancelOrder(o.id)}>
-                            <i className="fa-solid fa-xmark"></i> İptal Et
+                            <i className="fa-solid fa-xmark"></i> {t('cancel')}
                           </button>
                         </div>
                       );
                     } else {
                       statusBadge = (
                         <span className="order-status status-locked">
-                          <i className="fa-solid fa-lock"></i> Geri Dönüşsüz
+                          <i className="fa-solid fa-lock"></i> {t('locked')}
                         </span>
                       );
                       actionBtn = (
                         <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', alignItems: 'center', flexWrap: 'wrap' }}>
                           <span style={{ fontSize: '12px', color: 'var(--success)', fontWeight: 600 }}>
-                            <i className="fa-solid fa-shield-halved"></i> Garantili Kilitleme Tamamlandı
+                            <i className="fa-solid fa-shield-halved"></i> {t('guaranteedLock')}
                           </span>
                           <button className="btn btn-success" onClick={() => openCheque(o)}>
-                            <i className="fa-solid fa-ticket"></i> Çek Yaprağı Paylaş
+                            <i className="fa-solid fa-ticket"></i> {t('shareCheque')}
                           </button>
                         </div>
                       );
                     }
                   } else if (o.status === 'executed') {
-                    statusBadge = <span className="order-status status-executed">Gönderildi</span>;
+                    statusBadge = <span className="order-status status-executed">{t('sent')}</span>;
                   } else {
-                    statusBadge = <span className="order-status status-cancelled">İptal Edildi</span>;
+                    statusBadge = <span className="order-status status-cancelled">{t('cancelled')}</span>;
                   }
 
                   // Seconds Left formatted countdown
-                  let countdownText = 'Süre doldu';
+                  let countdownText = t('expired');
                   if (secondsLeft > 0) {
                     const h = Math.floor(secondsLeft / 3600);
                     const m = Math.floor((secondsLeft % 3600) / 60);
@@ -571,21 +768,21 @@ export default function Home() {
                   return (
                     <div className="order-item" key={o.id}>
                       <div className="order-header">
-                        <span className="order-id">Emir #{o.id}</span>
+                        <span className="order-id">{t('orderId')} #{o.id}</span>
                         {statusBadge}
                       </div>
                       <div className="order-details">
                         <div>
-                          <strong>Alıcı:</strong> {o.receiver.substring(0, 8)}...
+                          <strong>{t('receiver')}:</strong> {o.receiver.substring(0, 8)}...
                         </div>
                         <div>
-                          <strong>Miktar:</strong> {o.amount} {o.token_symbol}
+                          <strong>{t('amount')}:</strong> {o.amount} {o.token_symbol}
                         </div>
                         <div>
-                          <strong>Tarih:</strong> {timeStr}
+                          <strong>{t('date')}:</strong> {timeStr}
                         </div>
                         <div>
-                          <strong>Sayaç:</strong> <span className="countdown">{countdownText}</span>
+                          <strong>{t('countdown')}:</strong> <span className="countdown">{countdownText}</span>
                         </div>
                       </div>
                       <div style={{ marginTop: '15px', textAlign: 'right' }}>{actionBtn}</div>
@@ -605,10 +802,10 @@ export default function Home() {
             <div style={{ width: '70px', height: '70px', background: 'rgba(16,185,129,0.15)', border: '2px solid var(--success)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '28px', color: 'var(--success)' }}>
               <i className="fa-solid fa-check"></i>
             </div>
-            <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: '22px', marginBottom: '10px', color: '#fff' }}>İşlem Başarılı!</h2>
+            <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: '22px', marginBottom: '10px', color: '#fff' }}>{t('txSuccess')}</h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.7, marginBottom: '25px' }} dangerouslySetInnerHTML={{ __html: successModalMsg }}></p>
             <button className="btn btn-primary" onClick={() => setShowSuccessModal(false)} style={{ maxWidth: '200px', margin: '0 auto' }}>
-              <i className="fa-solid fa-check-double"></i> Tamam
+              <i className="fa-solid fa-check-double"></i> {t('done')}
             </button>
           </div>
         </div>
@@ -621,21 +818,14 @@ export default function Home() {
             <div style={{ width: '70px', height: '70px', background: 'rgba(245,158,11,0.15)', border: '2px solid var(--primary)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', fontSize: '28px', color: 'var(--primary)' }}>
               <i className="fa-solid fa-triangle-exclamation"></i>
             </div>
-            <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: '20px', marginBottom: '12px', color: '#fff' }}>Dikkat!</h2>
-            <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.8, marginBottom: '28px' }}>
-              Gönderinizi <strong style={{ color: 'var(--primary)' }}>24 saatten kısa</strong> bir süre içinde gerçekleşecek şekilde planladınız.
-              <br />
-              <br />
-              Gönderimi onayladığınız takdirde <strong style={{ color: 'var(--danger)' }}>iptal etme şansınız olmayacak.</strong>
-              <br />
-              Onaylıyor musunuz?
-            </p>
+            <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: '20px', marginBottom: '12px', color: '#fff' }}>{t('warning')}</h2>
+            <p style={{ color: 'var(--text-muted)', fontSize: '14px', lineHeight: 1.8, marginBottom: '28px' }} dangerouslySetInnerHTML={{ __html: t('warningMsg') }} />
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
               <button className="btn btn-outline" onClick={() => setShowConfirmModal(false)} style={{ width: 'auto', padding: '10px 22px' }}>
-                <i className="fa-solid fa-xmark"></i> Vazgeç
+                <i className="fa-solid fa-xmark"></i> {t('discard')}
               </button>
               <button className="btn btn-primary" onClick={executeContractSchedule} style={{ width: 'auto', padding: '10px 22px' }}>
-                <i className="fa-solid fa-lock"></i> Evet, Kilitle
+                <i className="fa-solid fa-lock"></i> {t('yesLock')}
               </button>
             </div>
           </div>
@@ -650,7 +840,7 @@ export default function Home() {
             <div className="cheque">
               <div className="cheque-header">
                 <div className="cheque-title">
-                  <i className="fa-solid fa-file-invoice-dollar"></i> PayWhen Blokzincir Ödeme Çeki
+                  <i className="fa-solid fa-file-invoice-dollar"></i> {t('chequeTitle')}
                 </div>
                 <div className="cheque-no">
                   NO: PAYWHEN-{String(activeCheque.id).padStart(6, '0')}
@@ -659,15 +849,15 @@ export default function Home() {
               <div className="cheque-body">
                 <div>
                   <div className="cheque-row">
-                    <span className="cheque-label">Gönderen (Cüzdan)</span>
+                    <span className="cheque-label">{t('chequeLabelSender')}</span>
                     <span className="cheque-value">{activeCheque.sender}</span>
                   </div>
                   <div className="cheque-row">
-                    <span className="cheque-label">Alıcı (Receiver)</span>
+                    <span className="cheque-label">{t('chequeLabelReceiver')}</span>
                     <span className="cheque-value">{activeCheque.receiver}</span>
                   </div>
                   <div className="cheque-row">
-                    <span className="cheque-label">Planlanan Gönderim Zamanı</span>
+                    <span className="cheque-label">{t('chequeLabelTime')}</span>
                     <span className="cheque-value">{new Date(activeCheque.execute_at * 1000).toLocaleString()}</span>
                   </div>
                 </div>
@@ -676,10 +866,10 @@ export default function Home() {
                 </div>
               </div>
               <div className="cheque-footer">
-                <div className="cheque-status-stamp">🔒 Kilitli ve Garantili</div>
+                <div className="cheque-status-stamp">{t('lockedAndGuaranteed')}</div>
                 <div className="cheque-signature">
                   <div className="cheque-signature-line"></div>
-                  <div>PayWhen Protokolü Garantisi</div>
+                  <div>{t('protocolGuarantee')}</div>
                 </div>
               </div>
             </div>
@@ -693,20 +883,20 @@ export default function Home() {
           <div className="modal-content" style={{ maxWidth: '400px', padding: '30px' }}>
             <span className="close-modal" onClick={() => setShowPasskeyModal(false)}>&times;</span>
             <h2 style={{ fontFamily: "'Outfit',sans-serif", fontSize: '20px', marginBottom: '15px', color: '#fff', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <i className="fa-solid fa-fingerprint" style={{ color: 'var(--primary)' }}></i> Biyometrik Cüzdan (Passkey)
+              <i className="fa-solid fa-fingerprint" style={{ color: 'var(--primary)' }}></i> {t('passkeyTitle')}
             </h2>
             
             {!circleEnabled && (
               <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '8px', padding: '12px', fontSize: '12px', color: 'var(--primary)', marginBottom: '20px', lineHeight: '1.5' }}>
-                <i className="fa-solid fa-circle-info"></i> <strong>Bilgi:</strong> Circle Web3 Services API anahtarları henüz tanımlanmadığı için bu işlem yerel tarayıcı WebAuthn API'sini simüle ederek TouchID/FaceID akışını canlandıracaktır.
+                <i className="fa-solid fa-circle-info"></i> <strong>{t('warning')}:</strong> {t('passkeySimWarning')}
               </div>
             )}
 
             <div className="form-group" style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '6px' }}>Kullanıcı Adı veya E-posta</label>
+              <label style={{ display: 'block', marginBottom: '6px' }}>{t('usernameLabel')}</label>
               <input
                 type="text"
-                placeholder="Örn: ahmet@paywhen.xyz"
+                placeholder={t('usernamePlaceholder')}
                 value={passkeyUsername}
                 onChange={e => setPasskeyUsername(e.target.value)}
                 required
@@ -716,10 +906,10 @@ export default function Home() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               <button className="btn btn-primary" onClick={handleCircleRegister} disabled={loading} style={{ background: 'var(--primary)', color: '#000' }}>
-                <i className="fa-solid fa-user-plus"></i> Yeni Biyometrik Cüzdan Yarat
+                <i className="fa-solid fa-user-plus"></i> {t('createPasskey')}
               </button>
               <button className="btn btn-outline" onClick={handleCircleLogin} disabled={loading}>
-                <i className="fa-solid fa-key"></i> Mevcut Cüzdana Giriş Yap
+                <i className="fa-solid fa-key"></i> {t('loginPasskey')}
               </button>
             </div>
           </div>

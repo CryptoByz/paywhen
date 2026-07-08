@@ -75,7 +75,7 @@
       font-weight: 700;
     }
     .tooltip:hover::after {
-      content: "Otomatik Gas Havuzu: Geleceğe dönük planlanan işlemlerin, cüzdanınızdan gas ücreti harcamadan sistem (relayer) tarafından otomatik çalıştırılmasını sağlayan bakiyedir.";
+      content: attr(data-tooltip);
       position: absolute;
       top: 25px;
       right: 0;
