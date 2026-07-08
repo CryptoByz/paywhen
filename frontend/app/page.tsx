@@ -87,6 +87,7 @@ const translations = {
     orderCreatedWithCancel: 'Emir <strong>#{orderId}</strong> başarıyla planlandı.<br><br>İptal etmek isterseniz ilk <strong>24 saat</strong> içinde bu hakkı kullanabilirsiniz.',
     cancelExpired: '24 saatlik iptal süresi dolduğu için bu işlem artık geri alınamaz.',
     orderCancelledMsg: 'Emir <strong>#{id}</strong> iptal edildi ve kilitli fonlar cüzdanınıza iade edildi.',
+    switchNetworkError: 'Lütfen cüzdanınızı ARC Testnet ağına geçirin.',
   },
   en: {
     serverStatus: 'Server Status',
@@ -157,6 +158,7 @@ const translations = {
     orderCreatedWithCancel: 'Order <strong>#{orderId}</strong> successfully scheduled.<br><br>If you want to cancel, you can do so within the first <strong>24 hours.</strong>',
     cancelExpired: 'This operation cannot be cancelled because the 24-hour cancellation window has expired.',
     orderCancelledMsg: 'Order <strong>#{id}</strong> cancelled and locked funds returned to your wallet.',
+    switchNetworkError: 'Please switch your wallet to the ARC Testnet network.',
   }
 };
 
@@ -265,9 +267,64 @@ export default function Home() {
     }
   };
 
+  const ensureArcTestnet = async (): Promise<boolean> => {
+    if (typeof window === 'undefined' || !(window as any).ethereum) return false;
+    const ARC_TESTNET_HEX_ID = '0x4cee0a';
+    try {
+      const currentChainId = await (window as any).ethereum.request({ method: 'eth_chainId' });
+      const chainIdDecimal = parseInt(currentChainId, 16);
+      if (chainIdDecimal === 5042002) {
+        return true;
+      }
+
+      try {
+        await (window as any).ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: ARC_TESTNET_HEX_ID }],
+        });
+        return true;
+      } catch (switchError: any) {
+        if (switchError.code === 4902) {
+          try {
+            await (window as any).ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [
+                {
+                  chainId: ARC_TESTNET_HEX_ID,
+                  chainName: 'ARC Testnet',
+                  nativeCurrency: {
+                    name: 'ARC',
+                    symbol: 'ARC',
+                    decimals: 18,
+                  },
+                  rpcUrls: ['https://rpc.testnet.arc.network'],
+                  blockExplorerUrls: ['https://explorer.testnet.arc.network'],
+                },
+              ],
+            });
+            return true;
+          } catch (addError) {
+            console.error('Error adding ARC network:', addError);
+            return false;
+          }
+        }
+        console.error('Error switching to ARC network:', switchError);
+        return false;
+      }
+    } catch (e) {
+      console.error('ensureArcTestnet error:', e);
+      return false;
+    }
+  };
+
   const connectWallet = async () => {
     if (typeof window !== 'undefined' && (window as any).ethereum) {
       try {
+        const isCorrectNetwork = await ensureArcTestnet();
+        if (!isCorrectNetwork) {
+          alert(t('switchNetworkError'));
+          return;
+        }
         const provider = new ethers.providers.Web3Provider((window as any).ethereum);
         const accounts = await provider.send('eth_requestAccounts', []);
         setUserAddress(accounts[0]);
@@ -317,6 +374,13 @@ export default function Home() {
     setLoading(true);
 
     try {
+      const isCorrectNetwork = await ensureArcTestnet();
+      if (!isCorrectNetwork) {
+        alert(t('switchNetworkError'));
+        setLoading(false);
+        return;
+      }
+
       let orderId = orders.length + 1;
       const executeTimeSec = Math.floor(new Date(executeAt).getTime() / 1000);
 
@@ -418,6 +482,13 @@ export default function Home() {
 
     setLoading(true);
     try {
+      const isCorrectNetwork = await ensureArcTestnet();
+      if (!isCorrectNetwork) {
+        alert(t('switchNetworkError'));
+        setLoading(false);
+        return;
+      }
+
       const provider = new ethers.providers.Web3Provider((window as any).ethereum);
       const signer = provider.getSigner();
 
