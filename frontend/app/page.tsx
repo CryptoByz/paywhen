@@ -88,6 +88,15 @@ const translations = {
     cancelExpired: '24 saatlik iptal süresi dolduğu için bu işlem artık geri alınamaz.',
     orderCancelledMsg: 'Emir <strong>#{id}</strong> iptal edildi ve kilitli fonlar cüzdanınıza iade edildi.',
     switchNetworkError: 'Lütfen cüzdanınızı ARC Testnet ağına geçirin.',
+    addressBook: 'Adres Defteri',
+    addContact: 'Yeni Adres Ekle',
+    contactName: 'Kişi İsmi',
+    contactAddress: 'Cüzdan Adresi (0x...)',
+    save: 'Kaydet',
+    delete: 'Sil',
+    noContacts: 'Kayıtlı adres bulunmuyor.',
+    searchPlaceholder: 'İsim veya adres ara...',
+    saveCurrent: 'Cüzdanı Deftere Kaydet',
   },
   en: {
     serverStatus: 'Server Status',
@@ -159,6 +168,15 @@ const translations = {
     cancelExpired: 'This operation cannot be cancelled because the 24-hour cancellation window has expired.',
     orderCancelledMsg: 'Order <strong>#{id}</strong> cancelled and locked funds returned to your wallet.',
     switchNetworkError: 'Please switch your wallet to the ARC Testnet network.',
+    addressBook: 'Address Book',
+    addContact: 'Add New Contact',
+    contactName: 'Contact Name',
+    contactAddress: 'Wallet Address (0x...)',
+    save: 'Save',
+    delete: 'Delete',
+    noContacts: 'No saved addresses found.',
+    searchPlaceholder: 'Search name or address...',
+    saveCurrent: 'Save to Address Book',
   }
 };
 
@@ -197,6 +215,13 @@ export default function Home() {
   // Time ticker state (just used to trigger render tick for count downs)
   const [time, setTime] = useState(Date.now());
 
+  // Address Book state
+  const [addressBook, setAddressBook] = useState<{ name: string; address: string }[]>([]);
+  const [showAddressBookModal, setShowAddressBookModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [newContactName, setNewContactName] = useState('');
+  const [newContactAddress, setNewContactAddress] = useState('');
+
   // Load language preference from localStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -205,8 +230,40 @@ export default function Home() {
         setLanguage(savedLang);
         setRelayerGas(savedLang === 'en' ? 'Loading...' : 'Yükleniyor...');
       }
+
+      const savedBook = localStorage.getItem('paywhen_address_book');
+      if (savedBook) {
+        try {
+          setAddressBook(JSON.parse(savedBook));
+        } catch (e) {
+          console.error(e);
+        }
+      }
     }
   }, []);
+
+  const saveAddressBook = (newBook: { name: string; address: string }[]) => {
+    setAddressBook(newBook);
+    localStorage.setItem('paywhen_address_book', JSON.stringify(newBook));
+  };
+
+  const handleAddContact = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newContactName.trim() || !newContactAddress.trim()) return;
+    if (!ethers.utils.isAddress(newContactAddress)) {
+      alert(language === 'tr' ? 'Geçersiz cüzdan adresi!' : 'Invalid wallet address!');
+      return;
+    }
+    const existing = addressBook.find(x => x.address.toLowerCase() === newContactAddress.toLowerCase());
+    if (existing) {
+      alert(language === 'tr' ? 'Bu adres zaten kayıtlı!' : 'This address is already saved!');
+      return;
+    }
+    const newBook = [...addressBook, { name: newContactName, address: newContactAddress }];
+    saveAddressBook(newBook);
+    setNewContactName('');
+    setNewContactAddress('');
+  };
 
   const t = (key: keyof typeof translations.tr) => {
     return translations[language][key] || translations.tr[key] || '';
@@ -645,14 +702,49 @@ export default function Home() {
               </div>
 
               <div className="form-group">
-                <label>{t('receiverAddress')}</label>
-                <input
-                  type="text"
-                  placeholder="0x..."
-                  value={receiverAddress}
-                  onChange={e => setReceiverAddress(e.target.value)}
-                  required
-                />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <label style={{ marginBottom: 0 }}>{t('receiverAddress')}</label>
+                  <button 
+                    type="button" 
+                    className="btn btn-outline" 
+                    style={{ width: 'auto', padding: '4px 10px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}
+                    onClick={() => setShowAddressBookModal(true)}
+                  >
+                    <i className="fa-solid fa-address-book" style={{ color: 'var(--primary)' }}></i> {t('addressBook')}
+                  </button>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    placeholder="0x..."
+                    value={receiverAddress}
+                    onChange={e => setReceiverAddress(e.target.value)}
+                    required
+                    style={{ flex: 1 }}
+                  />
+                  {receiverAddress && ethers.utils.isAddress(receiverAddress) && (
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ width: 'auto', padding: '0 12px' }}
+                      title={t('saveCurrent')}
+                      onClick={() => {
+                        const name = prompt(language === 'tr' ? 'Kişi ismi girin:' : 'Enter contact name:');
+                        if (name) {
+                          const existing = addressBook.find(x => x.address.toLowerCase() === receiverAddress.toLowerCase());
+                          if (existing) {
+                            alert(language === 'tr' ? 'Bu adres zaten kayıtlı!' : 'This address is already saved!');
+                            return;
+                          }
+                          const newBook = [...addressBook, { name, address: receiverAddress }];
+                          saveAddressBook(newBook);
+                        }
+                      }}
+                    >
+                      <i className="fa-regular fa-star" style={{ color: '#eab308' }}></i>
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Amount Input */}
@@ -875,6 +967,114 @@ export default function Home() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADDRESS BOOK MODAL */}
+      {showAddressBookModal && (
+        <div className="modal" style={{ display: 'flex', zIndex: 1100 }} onClick={e => e.target === e.currentTarget && setShowAddressBookModal(false)}>
+          <div className="modal-content" style={{ maxWidth: '500px', display: 'flex', flexDirection: 'column', maxHeight: '85vh', overflow: 'hidden' }}>
+            <span className="close-modal" onClick={() => setShowAddressBookModal(false)}>&times;</span>
+            <h2 className="panel-title" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <i className="fa-solid fa-address-book" style={{ color: 'var(--primary)' }}></i> {t('addressBook')}
+            </h2>
+
+            {/* Search Input */}
+            <div className="form-group" style={{ marginBottom: '15px' }}>
+              <input
+                type="text"
+                placeholder={t('searchPlaceholder')}
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                style={{ padding: '10px 14px', fontSize: '14px' }}
+              />
+            </div>
+
+            {/* Contacts List */}
+            <div style={{ flex: 1, overflowY: 'auto', marginBottom: '20px', maxHeight: '300px', border: '1px solid #1e293b', borderRadius: '8px', padding: '10px' }}>
+              {addressBook.filter(c => 
+                c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                c.address.toLowerCase().includes(searchTerm.toLowerCase())
+              ).length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '30px 0', color: 'var(--text-muted)', fontSize: '14px' }}>
+                  {t('noContacts')}
+                </div>
+              ) : (
+                addressBook.filter(c => 
+                  c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  c.address.toLowerCase().includes(searchTerm.toLowerCase())
+                ).map((contact, idx, arr) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '10px',
+                      borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #1e293b',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      transition: 'background 0.2s',
+                    }}
+                    className="contact-item"
+                    onClick={() => {
+                      setReceiverAddress(contact.address);
+                      setShowAddressBookModal(false);
+                    }}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', flex: 1 }}>
+                      <span style={{ fontWeight: 600, color: '#f8fafc', fontSize: '15px' }}>{contact.name}</span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '12px', color: 'var(--text-muted)' }}>
+                        {contact.address.substring(0, 6)}...{contact.address.substring(contact.address.length - 4)}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      style={{ width: 'auto', padding: '6px 10px', fontSize: '12px', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.2)' }}
+                      onClick={(e) => {
+                        e.stopPropagation(); // prevent selection when deleting
+                        if (confirm(language === 'tr' ? `${contact.name} kişisini silmek istiyor musunuz?` : `Are you sure you want to delete ${contact.name}?`)) {
+                          const newBook = addressBook.filter(x => x.address.toLowerCase() !== contact.address.toLowerCase());
+                          saveAddressBook(newBook);
+                        }
+                      }}
+                    >
+                      <i className="fa-regular fa-trash-can"></i>
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Add Contact Form */}
+            <form onSubmit={handleAddContact} style={{ borderTop: '1px solid #1e293b', paddingTop: '20px' }}>
+              <h3 style={{ fontSize: '14px', fontWeight: 600, color: '#cbd5e1', marginBottom: '12px' }}>{t('addContact')}</h3>
+              <div style={{ display: 'flex', gap: '10px', flexDirection: 'column' }}>
+                <input
+                  type="text"
+                  placeholder={t('contactName')}
+                  value={newContactName}
+                  onChange={e => setNewContactName(e.target.value)}
+                  style={{ padding: '8px 12px', fontSize: '13px' }}
+                  required
+                />
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input
+                    type="text"
+                    placeholder={t('contactAddress')}
+                    value={newContactAddress}
+                    onChange={e => setNewContactAddress(e.target.value)}
+                    style={{ padding: '8px 12px', fontSize: '13px', flex: 1 }}
+                    required
+                  />
+                  <button type="submit" className="btn btn-primary" style={{ width: 'auto', padding: '0 20px', height: '40px', fontSize: '13px' }}>
+                    <i className="fa-solid fa-plus"></i> {t('save')}
+                  </button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}
