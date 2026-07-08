@@ -320,13 +320,15 @@ export default function Home() {
   const connectWallet = async () => {
     if (typeof window !== 'undefined' && (window as any).ethereum) {
       try {
+        const provider = new ethers.providers.Web3Provider((window as any).ethereum);
+        const accounts = await provider.send('eth_requestAccounts', []);
+        
         const isCorrectNetwork = await ensureArcTestnet();
         if (!isCorrectNetwork) {
           alert(t('switchNetworkError'));
           return;
         }
-        const provider = new ethers.providers.Web3Provider((window as any).ethereum);
-        const accounts = await provider.send('eth_requestAccounts', []);
+        
         setUserAddress(accounts[0]);
       } catch (err: any) {
         alert(t('walletRejected'));
