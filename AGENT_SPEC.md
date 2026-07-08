@@ -35,7 +35,7 @@ PayWhen consists of:
 ## 🌐 API Specifications (Off-Chain Sync)
 
 The backend provides a live endpoint showing full tool specs at:
-`GET https://paywhen-api.knowledge-arena.xyz/api/agent-spec`
+`GET https://api.paywhen.xyz/api/agent-spec`
 
 ### Endpoints:
 1. **`GET /api/status`**
@@ -75,7 +75,7 @@ from web3 import Web3
 # 1. Setup Configurations
 RPC_URL = "https://rpc.testnet.arc.network"
 SCHEDULER_ADDRESS = "0x0e13299e56724Ce459e621b370f89552F87ede8B"
-API_BASE_URL = "https://paywhen-api.knowledge-arena.xyz"
+API_BASE_URL = "https://api.paywhen.xyz"
 
 USDC_ADDRESS = "0x8172189cCE9b68F94Ee23fB5077748495B85098F"
 DECIMALS = 6

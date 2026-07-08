@@ -251,7 +251,7 @@ export default function Home() {
 
   const checkBackendStatus = async () => {
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://paywhen-api.knowledge-arena.xyz';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.paywhen.xyz';
       const resp = await fetch(`${apiUrl}/api/status`);
       const data = await resp.json();
       setRelayerGas(`${parseFloat(data.relayerBalanceETH).toFixed(4)} ETH`);
@@ -265,7 +265,7 @@ export default function Home() {
   const fetchOrders = async () => {
     if (!userAddress) return;
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://paywhen-api.knowledge-arena.xyz';
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.paywhen.xyz';
       const resp = await fetch(`${apiUrl}/api/orders?address=${userAddress.toLowerCase()}`);
       if (!resp.ok) throw new Error('API request failed');
       const data = await resp.json();
@@ -429,7 +429,7 @@ export default function Home() {
 
       // Save to SQLite via backend API
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://paywhen-api.knowledge-arena.xyz';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.paywhen.xyz';
         await fetch(`${apiUrl}/api/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -487,7 +487,7 @@ export default function Home() {
 
       // Update SQLite status via backend API
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://paywhen-api.knowledge-arena.xyz';
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.paywhen.xyz';
         await fetch(`${apiUrl}/api/orders/${id}/cancel`, {
           method: 'POST'
         });
