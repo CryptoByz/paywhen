@@ -1,0 +1,28 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/TimeLockedScheduler.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.20;\n\ninterface IERC20 {\n    function transfer(address to, uint256 value) external returns (bool);\n    function transferFrom(address from, address to, uint256 value) external returns (bool);\n    function balanceOf(address owner) external view returns (uint256);\n}\n\n/**\n * @title TimeLockedScheduler\n * @notice Trustless on-chain scheduler for future-dated token transfers.\n * Users deposit tokens and schedule a transfer. The backend relayer executes it at the target time.\n * Users can cancel and withdraw their funds anytime prior to execution.\n */\ncontract TimeLockedScheduler {\n\n    // --- Custom Errors ---\n    error InvalidReceiver();\n    error InvalidAmount();\n    error InvalidExecutionTime();\n    error OrderNotFound();\n    error OrderAlreadyExecuted();\n    error OrderAlreadyCancelled();\n    error ExecutionTimeNotReached();\n    error Unauthorized();\n    error TransferFailed();\n    error CancellationWindowExpired();\n\n    // --- Structs ---\n    struct Order {\n        uint256 id;\n        address sender;\n        address receiver;\n        address token;\n        uint256 amount;\n        uint256 executeAt;\n        uint256 createdAt;\n        bool executed;\n        bool cancelled;\n    }\n\n    // --- State Variables ---\n    uint256 public nextOrderId;\n    mapping(uint256 => Order) public orders;\n\n    // --- Events ---\n    event OrderScheduled(uint256 indexed orderId, address indexed sender, address indexed receiver, address token, uint256 amount, uint256 executeAt);\n    event OrderExecuted(uint256 indexed orderId, address indexed receiver, uint256 amount);\n    event OrderCancelled(uint256 indexed orderId, address indexed sender, uint256 amount);\n\n    // --- External Functions ---\n\n    /**\n     * @notice Schedules a future-dated transfer. Deposits tokens into this contract.\n     */\n    function scheduleOrder(\n        address token,\n        address receiver,\n        uint256 amount,\n        uint256 executeAt\n    ) external returns (uint256) {\n        if (receiver == address(0)) revert InvalidReceiver();\n        if (amount == 0) revert InvalidAmount();\n        if (executeAt <= block.timestamp) revert InvalidExecutionTime();\n\n        // Pull tokens from sender\n        bool success = IERC20(token).transferFrom(msg.sender, address(this), amount);\n        if (!success) revert TransferFailed();\n\n        uint256 orderId = ++nextOrderId;\n        orders[orderId] = Order({\n            id: orderId,\n            sender: msg.sender,\n            receiver: receiver,\n            token: token,\n            amount: amount,\n            executeAt: executeAt,\n            createdAt: block.timestamp,\n            executed: false,\n            cancelled: false\n        });\n\n        emit OrderScheduled(orderId, msg.sender, receiver, token, amount, executeAt);\n        return orderId;\n    }\n\n    /**\n     * @notice Executes a scheduled transfer if the target time is reached.\n     * @dev Can be called by anyone (normally our backend relayer), paying the gas fee.\n     */\n    function executeOrder(uint256 orderId) external {\n        Order storage order = orders[orderId];\n        if (order.sender == address(0)) revert OrderNotFound();\n        if (order.executed) revert OrderAlreadyExecuted();\n        if (order.cancelled) revert OrderAlreadyCancelled();\n        if (block.timestamp < order.executeAt) revert InvalidExecutionTime();\n\n        order.executed = true;\n\n        bool success = IERC20(order.token).transfer(order.receiver, order.amount);\n        if (!success) revert TransferFailed();\n\n        emit OrderExecuted(orderId, order.receiver, order.amount);\n    }\n\n    /**\n     * @notice Cancels a scheduled transfer and retrieves the locked tokens.\n     * @dev Only callable by the original order creator (sender).\n     */\n    function cancelOrder(uint256 orderId) external {\n        Order storage order = orders[orderId];\n        if (order.sender == address(0)) revert OrderNotFound();\n        if (order.sender != msg.sender) revert Unauthorized();\n        if (order.executed) revert OrderAlreadyExecuted();\n        if (order.cancelled) revert OrderAlreadyCancelled();\n        if (block.timestamp > order.createdAt + 24 hours) revert CancellationWindowExpired();\n\n        order.cancelled = true;\n\n        bool success = IERC20(order.token).transfer(order.sender, order.amount);\n        if (!success) revert TransferFailed();\n\n        emit OrderCancelled(orderId, order.sender, order.amount);\n    }\n\n    // --- View Helpers ---\n\n    function getOrder(uint256 orderId) external view returns (Order memory) {\n        return orders[orderId];\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false
+    },
+    "evmVersion": "shanghai",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    }
+  }
+}
