@@ -317,110 +317,153 @@ export default function Dashboard() {
           </div>
         ) : stats ? (
           <div className="space-y-8">
-            {/* General Statistics Table */}
-            <div className="border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/40 to-slate-950/40 p-6 backdrop-blur-md">
-              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+            {/* General Statistics Tables */}
+            <div className="border border-slate-800/50 rounded-2xl bg-gradient-to-b from-slate-900/40 to-slate-950/40 p-6 backdrop-blur-md space-y-8">
+              <h3 className="text-xl font-bold text-white pb-2 border-b border-slate-800/60 flex items-center gap-2">
                 <span className="w-2.5 h-5 bg-indigo-500 rounded-sm inline-block shadow-sm shadow-indigo-500/50" />
                 {language === 'tr' ? 'Genel Protokol İstatistikleri' : 'Global Protocol Statistics'}
               </h3>
-              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-800">
-                <table className="w-full text-left border-collapse min-w-[800px]">
-                  <thead>
-                    <tr className="border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <th className="py-4 px-4 w-1/3">{language === 'tr' ? 'Metrik' : 'Metric'}</th>
-                      <th className="py-4 px-4 text-right w-1/4">{language === 'tr' ? 'Değer' : 'Value'}</th>
-                      <th className="py-4 px-4 w-5/12">{language === 'tr' ? 'Açıklama / Durum' : 'Description / Status'}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="text-sm font-medium">
-                    <tr className="border-b border-slate-900/60 hover:bg-slate-900/10 transition-colors">
-                      <td className="py-4 px-4 text-slate-200 font-semibold">{language === 'tr' ? 'Toplam USDC Hacmi' : 'Total USDC Volume'}</td>
-                      <td className="py-4 px-4 text-right font-mono text-white text-base font-extrabold whitespace-nowrap">
-                        {usdcStats.executed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
-                      </td>
-                      <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed">
-                        {language === 'tr' 
-                          ? `Başarıyla transfer edilen miktar (Planlanan toplam: ${usdcStats.scheduled.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC)`
-                          : `Successfully transferred volume (Total scheduled: ${usdcStats.scheduled.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC)`}
-                      </td>
-                    </tr>
 
-                    <tr className="border-b border-slate-900/60 hover:bg-slate-900/10 transition-colors">
-                      <td className="py-4 px-4 text-slate-200 font-semibold">{language === 'tr' ? 'Toplam EURC Hacmi' : 'Total EURC Volume'}</td>
-                      <td className="py-4 px-4 text-right font-mono text-white text-base font-extrabold whitespace-nowrap">
-                        {(stats?.volumes?.['EURC']?.executed || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EURC
-                      </td>
-                      <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed">
-                        {language === 'tr' 
-                          ? `Başarıyla transfer edilen miktar (Planlanan toplam: ${(stats?.volumes?.['EURC']?.scheduled || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} EURC)`
-                          : `Successfully transferred volume (Total scheduled: ${(stats?.volumes?.['EURC']?.scheduled || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} EURC)`}
-                      </td>
-                    </tr>
+              {/* Group 1: Volumes */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400 mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-3 bg-indigo-500/70 rounded-sm inline-block" />
+                  {language === 'tr' ? 'İşlem Hacimleri' : 'Transaction Volumes'}
+                </h4>
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-800">
+                  <table className="w-full text-left border-collapse min-w-[800px] border border-slate-800/60">
+                    <thead>
+                      <tr className="bg-slate-900/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="py-3 px-4 w-1/3 border border-slate-800/60">{language === 'tr' ? 'Metrik' : 'Metric'}</th>
+                        <th className="py-3 px-4 text-right w-1/4 border border-slate-800/60">{language === 'tr' ? 'Değer' : 'Value'}</th>
+                        <th className="py-3 px-4 w-5/12 border border-slate-800/60">{language === 'tr' ? 'Açıklama / Durum' : 'Description / Status'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm font-medium">
+                      <tr className="hover:bg-slate-900/10 transition-colors">
+                        <td className="py-4 px-4 text-slate-200 font-semibold border border-slate-800/60">{language === 'tr' ? 'Toplam USDC Hacmi' : 'Total USDC Volume'}</td>
+                        <td className="py-4 px-4 text-right font-mono text-white text-base font-extrabold whitespace-nowrap border border-slate-800/60">
+                          {usdcStats.executed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC
+                        </td>
+                        <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed border border-slate-800/60">
+                          {language === 'tr' 
+                            ? `Başarıyla transfer edilen miktar (Planlanan toplam: ${usdcStats.scheduled.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC)`
+                            : `Successfully transferred volume (Total scheduled: ${usdcStats.scheduled.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC)`}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/10 transition-colors">
+                        <td className="py-4 px-4 text-slate-200 font-semibold border border-slate-800/60">{language === 'tr' ? 'Toplam EURC Hacmi' : 'Total EURC Volume'}</td>
+                        <td className="py-4 px-4 text-right font-mono text-white text-base font-extrabold whitespace-nowrap border border-slate-800/60">
+                          {(stats?.volumes?.['EURC']?.executed || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} EURC
+                        </td>
+                        <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed border border-slate-800/60">
+                          {language === 'tr' 
+                            ? `Başarıyla transfer edilen miktar (Planlanan toplam: ${(stats?.volumes?.['EURC']?.scheduled || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} EURC)`
+                            : `Successfully transferred volume (Total scheduled: ${(stats?.volumes?.['EURC']?.scheduled || 0).toLocaleString(undefined, { maximumFractionDigits: 2 })} EURC)`}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-                    <tr className="border-b border-slate-900/60 hover:bg-slate-900/10 transition-colors">
-                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Toplam Planlanan Emir' : 'Total Scheduled Orders'}</td>
-                      <td className="py-4 px-4 text-right font-mono text-white font-semibold">{stats.totalTx}</td>
-                      <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed">
-                        {language === 'tr' 
-                          ? 'Dapp üzerinden bugüne kadar zamanlanmış tüm ödemeler'
-                          : 'All payments scheduled using the Dapp to date'}
-                      </td>
-                    </tr>
+              {/* Group 2: Counts */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400 mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-3 bg-purple-500/70 rounded-sm inline-block" />
+                  {language === 'tr' ? 'İşlem Adetleri' : 'Transaction Counts'}
+                </h4>
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-800">
+                  <table className="w-full text-left border-collapse min-w-[800px] border border-slate-800/60">
+                    <thead>
+                      <tr className="bg-slate-900/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="py-3 px-4 w-1/3 border border-slate-800/60">{language === 'tr' ? 'Metrik' : 'Metric'}</th>
+                        <th className="py-3 px-4 text-right w-1/4 border border-slate-800/60">{language === 'tr' ? 'Değer' : 'Value'}</th>
+                        <th className="py-3 px-4 w-5/12 border border-slate-800/60">{language === 'tr' ? 'Açıklama / Durum' : 'Description / Status'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm font-medium">
+                      <tr className="hover:bg-slate-900/10 transition-colors">
+                        <td className="py-4 px-4 text-slate-200 border border-slate-800/60">{language === 'tr' ? 'Toplam Planlanan Emir' : 'Total Scheduled Orders'}</td>
+                        <td className="py-4 px-4 text-right font-mono text-white font-semibold border border-slate-800/60">{stats.totalTx}</td>
+                        <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed border border-slate-800/60">
+                          {language === 'tr' 
+                            ? 'Dapp üzerinden bugüne kadar zamanlanmış tüm ödemeler'
+                            : 'All payments scheduled using the Dapp to date'}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/10 transition-colors">
+                        <td className="py-4 px-4 text-slate-200 border border-slate-800/60">{language === 'tr' ? 'Başarıyla Yürütülen Emirler' : 'Executed Orders'}</td>
+                        <td className="py-4 px-4 text-right font-mono text-emerald-400 font-semibold border border-slate-800/60">{stats.executedTx}</td>
+                        <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed border border-slate-800/60">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
+                            {language === 'tr' ? 'Zamanı gelip başarıyla transfer edilenler' : 'Successfully executed transfers'}
+                          </span>
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/10 transition-colors">
+                        <td className="py-4 px-4 text-slate-200 border border-slate-800/60">{language === 'tr' ? 'İptal Edilen Emirler' : 'Cancelled Orders'}</td>
+                        <td className="py-4 px-4 text-right font-mono text-rose-400 font-semibold border border-slate-800/60">{stats.cancelledTx}</td>
+                        <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed border border-slate-800/60">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
+                            {language === 'tr' ? 'Kullanıcılar tarafından 24 saatlik süre içinde geri çekilenler' : 'Orders cancelled by users prior to execution'}
+                          </span>
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/10 transition-colors">
+                        <td className="py-4 px-4 text-slate-200 border border-slate-800/60">{language === 'tr' ? 'Bekleyen (Aktif) Emirler' : 'Pending Orders'}</td>
+                        <td className="py-4 px-4 text-right font-mono text-amber-400 font-semibold border border-slate-800/60">{stats.pendingTx}</td>
+                        <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed border border-slate-800/60">
+                          <span className="inline-flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
+                            {language === 'tr' ? 'Günü geldiğinde relayer tarafından otomatik yürütülecekler' : 'Active orders waiting to be executed'}
+                          </span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
 
-                    <tr className="border-b border-slate-900/60 hover:bg-slate-900/10 transition-colors">
-                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Başarıyla Yürütülen Emirler' : 'Executed Orders'}</td>
-                      <td className="py-4 px-4 text-right font-mono text-emerald-400 font-semibold">{stats.executedTx}</td>
-                      <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed">
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/50" />
-                          {language === 'tr' ? 'Zamanı gelip başarıyla transfer edilenler' : 'Successfully executed transfers'}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr className="border-b border-slate-900/60 hover:bg-slate-900/10 transition-colors">
-                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'İptal Edilen Emirler' : 'Cancelled Orders'}</td>
-                      <td className="py-4 px-4 text-right font-mono text-rose-400 font-semibold">{stats.cancelledTx}</td>
-                      <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed">
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500/50" />
-                          {language === 'tr' ? 'Kullanıcılar tarafından 24 saatlik süre içinde geri çekilenler' : 'Orders cancelled by users prior to execution'}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr className="border-b border-slate-900/60 hover:bg-slate-900/10 transition-colors">
-                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Bekleyen (Aktif) Emirler' : 'Pending Orders'}</td>
-                      <td className="py-4 px-4 text-right font-mono text-amber-400 font-semibold">{stats.pendingTx}</td>
-                      <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed">
-                        <span className="inline-flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-sm shadow-amber-500/50" />
-                          {language === 'tr' ? 'Günü geldiğinde relayer tarafından otomatik yürütülecekler' : 'Active orders waiting to be executed'}
-                        </span>
-                      </td>
-                    </tr>
-
-                    <tr className="border-b border-slate-900/60 hover:bg-slate-900/10 transition-colors">
-                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Tekil Cüzdan Sayısı' : 'Unique Wallets'}</td>
-                      <td className="py-4 px-4 text-right font-mono text-white font-semibold">{stats.uniqueWalletsCount}</td>
-                      <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed">
-                        {language === 'tr' 
-                          ? 'Akıllı sözleşmeyle etkileşime giren (gönderen veya alıcı) tekil cüzdanlar'
-                          : 'Unique wallet addresses interacting with the contract (as sender or receiver)'}
-                      </td>
-                    </tr>
-
-                    <tr className="hover:bg-slate-900/10 transition-colors">
-                      <td className="py-4 px-4 text-slate-200">{language === 'tr' ? 'Sistem Başarı Oranı' : 'Success Rate'}</td>
-                      <td className="py-4 px-4 text-right font-mono text-indigo-400 font-bold text-base">%{successRate}</td>
-                      <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed">
-                        {language === 'tr' 
-                          ? 'Yürütülen emirlerin, sonuçlanmış (yürütülmüş veya iptal edilmiş) tüm emirlere oranı'
-                          : 'Ratio of executed orders to all completed (executed or cancelled) orders'}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+              {/* Group 3: Metrics */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-pink-400 mb-3 flex items-center gap-2">
+                  <span className="w-1.5 h-3 bg-pink-500/70 rounded-sm inline-block" />
+                  {language === 'tr' ? 'Sistem & Kullanım Metrikleri' : 'System & Usage Metrics'}
+                </h4>
+                <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-800">
+                  <table className="w-full text-left border-collapse min-w-[800px] border border-slate-800/60">
+                    <thead>
+                      <tr className="bg-slate-900/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                        <th className="py-3 px-4 w-1/3 border border-slate-800/60">{language === 'tr' ? 'Metrik' : 'Metric'}</th>
+                        <th className="py-3 px-4 text-right w-1/4 border border-slate-800/60">{language === 'tr' ? 'Değer' : 'Value'}</th>
+                        <th className="py-3 px-4 w-5/12 border border-slate-800/60">{language === 'tr' ? 'Açıklama / Durum' : 'Description / Status'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="text-sm font-medium">
+                      <tr className="hover:bg-slate-900/10 transition-colors">
+                        <td className="py-4 px-4 text-slate-200 border border-slate-800/60">{language === 'tr' ? 'Tekil Cüzdan Sayısı' : 'Unique Wallets'}</td>
+                        <td className="py-4 px-4 text-right font-mono text-white font-semibold border border-slate-800/60">{stats.uniqueWalletsCount}</td>
+                        <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed border border-slate-800/60">
+                          {language === 'tr' 
+                            ? 'Akıllı sözleşmeyle etkileşime giren (gönderen veya alıcı) tekil cüzdanlar'
+                            : 'Unique wallet addresses interacting with the contract (as sender or receiver)'}
+                        </td>
+                      </tr>
+                      <tr className="hover:bg-slate-900/10 transition-colors">
+                        <td className="py-4 px-4 text-slate-200 border border-slate-800/60">{language === 'tr' ? 'Sistem Başarı Oranı' : 'Success Rate'}</td>
+                        <td className="py-4 px-4 text-right font-mono text-indigo-400 font-bold text-base border border-slate-800/60">%{successRate}</td>
+                        <td className="py-4 px-4 text-xs text-slate-400 leading-relaxed border border-slate-800/60">
+                          {language === 'tr' 
+                            ? 'Yürütülen emirlerin, sonuçlanmış (yürütülmüş veya iptal edilmiş) tüm emirlere oranı'
+                            : 'Ratio of executed orders to all completed (executed or cancelled) orders'}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
 
@@ -432,21 +475,21 @@ export default function Dashboard() {
               </h3>
 
               <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-slate-800">
-                <table className="w-full text-left border-collapse min-w-[850px]">
+                <table className="w-full text-left border-collapse min-w-[850px] border border-slate-800/60">
                   <thead>
-                    <tr className="border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                      <th className="py-3 px-4 w-[10%]">{t('id')}</th>
-                      <th className="py-3 px-4 w-[25%]">{t('sender')}</th>
-                      <th className="py-3 px-4 w-[25%]">{t('receiver')}</th>
-                      <th className="py-3 px-4 text-right w-[15%]">{t('amount')}</th>
-                      <th className="py-3 px-4 w-[15%]">{t('executeAt')}</th>
-                      <th className="py-3 px-4 text-center w-[10%]">{t('status')}</th>
+                    <tr className="bg-slate-900/40 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                      <th className="py-3 px-4 w-[10%] border border-slate-800/60">{t('id')}</th>
+                      <th className="py-3 px-4 w-[25%] border border-slate-800/60">{t('sender')}</th>
+                      <th className="py-3 px-4 w-[25%] border border-slate-800/60">{t('receiver')}</th>
+                      <th className="py-3 px-4 text-right w-[15%] border border-slate-800/60">{t('amount')}</th>
+                      <th className="py-3 px-4 w-[15%] border border-slate-800/60">{t('executeAt')}</th>
+                      <th className="py-3 px-4 text-center w-[10%] border border-slate-800/60">{t('status')}</th>
                     </tr>
                   </thead>
                   <tbody className="text-sm font-medium">
                     {recentOrders.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="py-8 text-center text-slate-500 text-sm">
+                        <td colSpan={6} className="py-8 text-center text-slate-500 text-sm border border-slate-800/60">
                           {t('noOrders')}
                         </td>
                       </tr>
@@ -454,10 +497,10 @@ export default function Dashboard() {
                       recentOrders.map((order) => (
                         <tr
                           key={order.id}
-                          className="border-b border-slate-900/40 hover:bg-slate-900/20 transition-colors"
+                          className="hover:bg-slate-900/20 transition-colors"
                         >
-                          <td className="py-4 px-4 text-slate-400 font-mono">#{order.id}</td>
-                          <td className="py-4 px-4 font-mono text-xs">
+                          <td className="py-4 px-4 text-slate-400 font-mono border border-slate-800/60">#{order.id}</td>
+                          <td className="py-4 px-4 font-mono text-xs border border-slate-800/60">
                             <button
                               onClick={() => copyToClipboard(order.sender, `sender-${order.id}`)}
                               className="hover:text-indigo-400 transition-colors cursor-pointer text-left focus:outline-none"
@@ -466,7 +509,7 @@ export default function Dashboard() {
                               {copyFeedback === `sender-${order.id}` ? t('copied') : formatAddress(order.sender)}
                             </button>
                           </td>
-                          <td className="py-4 px-4 font-mono text-xs">
+                          <td className="py-4 px-4 font-mono text-xs border border-slate-800/60">
                             <button
                               onClick={() => copyToClipboard(order.receiver, `receiver-${order.id}`)}
                               className="hover:text-indigo-400 transition-colors cursor-pointer text-left focus:outline-none"
@@ -475,13 +518,13 @@ export default function Dashboard() {
                               {copyFeedback === `receiver-${order.id}` ? t('copied') : formatAddress(order.receiver)}
                             </button>
                           </td>
-                          <td className="py-4 px-4 text-right font-semibold text-slate-100 whitespace-nowrap">
+                          <td className="py-4 px-4 text-right font-semibold text-slate-100 whitespace-nowrap border border-slate-800/60">
                             {order.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })} <span className="text-[10px] text-slate-400 font-bold">{order.token_symbol}</span>
                           </td>
-                          <td className="py-4 px-4 text-xs text-slate-400 whitespace-nowrap">
+                          <td className="py-4 px-4 text-xs text-slate-400 whitespace-nowrap border border-slate-800/60">
                             {formatDate(order.execute_at)}
                           </td>
-                          <td className="py-4 px-4 text-center whitespace-nowrap">
+                          <td className="py-4 px-4 text-center whitespace-nowrap border border-slate-800/60">
                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold inline-block ${getStatusColor(order.status)}`}>
                               {getStatusText(order.status)}
                             </span>
@@ -493,6 +536,7 @@ export default function Dashboard() {
                 </table>
               </div>
             </div>
+
           </div>
         ) : null}
       </div>
